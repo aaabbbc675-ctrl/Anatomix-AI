@@ -15,7 +15,7 @@ function formatLastScanDate(student) {
   return new Date(attachedAt).toLocaleDateString("fa-IR");
 }
 
-export default function StudentProfile({ studentId, onBack }) {
+export default function StudentProfile({ studentId, onBack, onNewProgram }) {
   const [student, setStudent] = useState(null);
   const [programs, setPrograms] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -57,12 +57,7 @@ export default function StudentProfile({ studentId, onBack }) {
           <p>آخرین اسکن: {formatLastScanDate(student)}</p>
 
           <div style={{ margin: "1.5rem 0" }}>
-            <button disabled title="موتور بدنسازی هنوز ساخته نشده">
-              + برنامه جدید
-            </button>
-            <span style={{ marginRight: "0.5rem", color: "#888", fontSize: "0.85rem" }}>
-              (این بخش در مرحله‌ی بعد فعال می‌شود)
-            </span>
+            <button onClick={onNewProgram}>+ برنامه جدید</button>
           </div>
 
           <h3>تاریخچه‌ی برنامه‌ها</h3>
