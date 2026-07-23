@@ -11,9 +11,9 @@
 // برای بیماری قلبی، در specific_exercise_overrides) اینجا اعمال نمی‌شود — فقط
 // بدون تغییر pass-through می‌شود تا زیرمرحله‌ی ۵.۵ (انتخاب واقعی حرکت) از آن
 // استفاده کند. اینجا فقط اعداد سطح جلسه/عضله (نه سطح تک‌حرکت) clamp می‌شوند.
-const { clampScalarIntoRange, clampRange } = require("./clamp");
-const { resolveTempo } = require("./tempoResolver");
-const { resolveVolumeIntensityAdjustment } = require("./returnProtocolResolver");
+import { clampScalarIntoRange, clampRange } from "./clamp.js";
+import { resolveTempo } from "./tempoResolver.js";
+import { resolveVolumeIntensityAdjustment } from "./returnProtocolResolver.js";
 
 function finalizePrescription({
   cascadeOutput,
@@ -77,4 +77,4 @@ function finalizePrescription({
   };
 }
 
-module.exports = { finalizePrescription };
+export { finalizePrescription };

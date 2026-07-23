@@ -67,4 +67,4 @@ function getSlotStandard(goal) {
   return row;
 }
 
-module.exports = { SLOT_STANDARDS, ISOLATION_RATIO, EXPERIENCE_VOLUME_RANGE, getSlotStandard };
+export { SLOT_STANDARDS, ISOLATION_RATIO, EXPERIENCE_VOLUME_RANGE, getSlotStandard };

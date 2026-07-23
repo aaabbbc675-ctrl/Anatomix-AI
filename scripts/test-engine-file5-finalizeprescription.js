@@ -1,10 +1,8 @@
 // اسکریپت تست مستقل برای فایل ۵ کسکید (ایمنی نهایی / finalizePrescription).
 // اجرا: node scripts/test-engine-file5-finalizeprescription.js
 
-const { finalizePrescription } = require("../engine/bodybuilding/file5_finalizePrescription");
-const { computeBiometrics } = require("../engine/bodybuilding/file2_biometrics");
-const { evaluateHardVeto } = require("../engine/bodybuilding/file3_hardVeto");
-
+// engine/ اکنون ESM است (engine/package.json)؛ این اسکریپت CommonJS می‌ماند،
+// پس باید فایل‌های موتور را با dynamic import() بارگذاری کند (پایین، داخل IIFE).
 let passCount = 0;
 let failCount = 0;
 
@@ -29,7 +27,13 @@ function assertArrayEqual(actual, expected, message) {
   if (!ok) throw new Error(`${message || "array mismatch"} — actual: ${JSON.stringify(actual)}, expected: ${JSON.stringify(expected)}`);
 }
 
-console.log("\n[سناریو ۱: بزرگسال سالم، بدون هیچ محدودیتی]");
+(async () => {
+  const { finalizePrescription } = await import("../engine/bodybuilding/file5_finalizePrescription/index.js");
+  const { computeBiometrics } = await import("../engine/bodybuilding/file2_biometrics.js");
+  const { evaluateHardVeto } = await import("../engine/bodybuilding/file3_hardVeto/index.js");
+  const { clampRange } = await import("../engine/bodybuilding/file5_finalizePrescription/clamp.js");
+
+  console.log("\n[سناریو ۱: بزرگسال سالم، بدون هیچ محدودیتی]");
 check("خروجی خام دست‌نخورده عبور می‌کند", () => {
   const cascadeOutput = computeBiometrics({ main_goal: "hypertrophy", experience: "intermediate", gender: "male" });
   const restriction = evaluateHardVeto({ age: 30, experience: "intermediate", main_goal: "hypertrophy", medicalFlags: {} });
@@ -167,11 +171,11 @@ check("سالمند + مانع تمپوی کندتر → کندترین تمپو
 
 console.log("\n[سناریوی مکمل: clampRange واقعاً بازه را جمع می‌کند، نه فقط نگه می‌دارد]");
 check("بازه‌ی خام کاملاً خارج از محدودیت → به مرز محدودیت جمع می‌شود", () => {
-  const { clampRange } = require("../engine/bodybuilding/file5_finalizePrescription/clamp");
   assertArrayEqual(clampRange([85, null], [null, 70]), [70, 70], "بازه‌ی بالا باید به سقف جمع شود");
   assertArrayEqual(clampRange([1, 6], [70, 80]), [70, 70], "بازه‌ی پایین باید به کف جمع شود");
   assertArrayEqual(clampRange([8, 12], [null, 15]), [8, 12], "بازه‌ی از قبل سازگار نباید تغییر کند");
 });
 
-console.log(`\n[test-engine-file5-finalizeprescription] ${passCount} PASS, ${failCount} FAIL`);
-process.exit(failCount > 0 ? 1 : 0);
+  console.log(`\n[test-engine-file5-finalizeprescription] ${passCount} PASS, ${failCount} FAIL`);
+  process.exit(failCount > 0 ? 1 : 0);
+})();

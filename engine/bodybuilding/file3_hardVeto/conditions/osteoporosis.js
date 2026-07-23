@@ -23,4 +23,4 @@ function osteoporosis() {
   };
 }
 
-module.exports = { osteoporosis };
+export { osteoporosis };

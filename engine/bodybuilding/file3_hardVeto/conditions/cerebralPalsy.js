@@ -22,4 +22,4 @@ function cerebralPalsy() {
   };
 }
 
-module.exports = { cerebralPalsy };
+export { cerebralPalsy };

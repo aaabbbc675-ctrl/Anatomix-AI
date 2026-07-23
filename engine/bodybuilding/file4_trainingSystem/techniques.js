@@ -65,4 +65,4 @@ const TECHNIQUES = {
   },
 };
 
-module.exports = { TECHNIQUES };
+export { TECHNIQUES };

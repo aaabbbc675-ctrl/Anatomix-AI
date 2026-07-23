@@ -80,4 +80,4 @@ function mergeRestrictions(patches) {
   return patches.filter(Boolean).reduce(mergeTwo, emptyPatch());
 }
 
-module.exports = { mergeRestrictions, mergeRange, emptyPatch };
+export { mergeRestrictions, mergeRange, emptyPatch };

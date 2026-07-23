@@ -22,4 +22,4 @@ function asthma() {
   };
 }
 
-module.exports = { asthma };
+export { asthma };

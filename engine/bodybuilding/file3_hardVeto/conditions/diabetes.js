@@ -26,4 +26,4 @@ function diabetes({ neuropathy = false } = {}) {
   };
 }
 
-module.exports = { diabetes };
+export { diabetes };

@@ -6,17 +6,17 @@
 // طبق بخش ۳.۱ سند، اعمال «غیرقابل‌دورزدن‌بودن» واقعی روی خروجی نهایی کار فایل ۵
 // (finalizePrescription، زیرمرحله‌ی ۵.۴) است. این فایل فقط محدودیت‌های پزشکی/سنی
 // را از روی ورودی، مستقل از فایل ۲ (بیومتریک)، محاسبه و با هم ترکیب می‌کند.
-const { evaluateAgeProtocol } = require("./ageProtocol");
-const { mergeRestrictions } = require("./mergeRestrictions");
-const { heartDisease } = require("./conditions/heartDisease");
-const { diabetes } = require("./conditions/diabetes");
-const { asthma } = require("./conditions/asthma");
-const { osteoporosis } = require("./conditions/osteoporosis");
-const { arthritis } = require("./conditions/arthritis");
-const { cerebralPalsy } = require("./conditions/cerebralPalsy");
-const { multipleSclerosis } = require("./conditions/multipleSclerosis");
-const { kidneyDisease } = require("./conditions/kidneyDisease");
-const { obesity } = require("./conditions/obesity");
+import { evaluateAgeProtocol } from "./ageProtocol.js";
+import { mergeRestrictions } from "./mergeRestrictions.js";
+import { heartDisease } from "./conditions/heartDisease.js";
+import { diabetes } from "./conditions/diabetes.js";
+import { asthma } from "./conditions/asthma.js";
+import { osteoporosis } from "./conditions/osteoporosis.js";
+import { arthritis } from "./conditions/arthritis.js";
+import { cerebralPalsy } from "./conditions/cerebralPalsy.js";
+import { multipleSclerosis } from "./conditions/multipleSclerosis.js";
+import { kidneyDisease } from "./conditions/kidneyDisease.js";
+import { obesity } from "./conditions/obesity.js";
 
 const MANDATORY_HEADER_WARNING = "در صورت تنگی نفس یا سرگیجه فوراً تمرین را متوقف کنید.";
 
@@ -64,4 +64,4 @@ function evaluateHardVeto({
   return merged;
 }
 
-module.exports = { evaluateHardVeto };
+export { evaluateHardVeto };

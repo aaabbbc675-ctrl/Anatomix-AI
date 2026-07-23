@@ -33,4 +33,4 @@ const EXERCISES = [
   { id: "CR-MC", short_code: "CR-MC", name: "ساق پا ایستاده با دستگاه", muscle_group: "calves", movement_type: "isolation", equipment: "machine", laterality: "bilateral", trainingGoal: ["hypertrophy", "endurance"] },
 ];
 
-module.exports = { EXERCISES };
+export { EXERCISES };

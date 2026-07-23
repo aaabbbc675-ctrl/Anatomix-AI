@@ -7,4 +7,4 @@ function filterExercisesByInjuryBlacklist(exercises, blacklistEntries = []) {
   return exercises.filter((exercise) => !blockedIds.has(exercise.id));
 }
 
-module.exports = { filterExercisesByInjuryBlacklist };
+export { filterExercisesByInjuryBlacklist };

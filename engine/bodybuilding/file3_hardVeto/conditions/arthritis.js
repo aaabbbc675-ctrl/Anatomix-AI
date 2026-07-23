@@ -23,4 +23,4 @@ function arthritis() {
   };
 }
 
-module.exports = { arthritis };
+export { arthritis };

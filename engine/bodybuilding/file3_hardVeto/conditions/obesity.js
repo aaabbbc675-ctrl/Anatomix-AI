@@ -24,4 +24,4 @@ function obesity() {
   };
 }
 
-module.exports = { obesity };
+export { obesity };

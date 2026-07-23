@@ -19,4 +19,4 @@ function resolveVolumeIntensityAdjustment({ returnProtocolTriggered = false, del
   return { source: "none", loadMultiplier: 1, setsMultiplier: 1 };
 }
 
-module.exports = { resolveVolumeIntensityAdjustment };
+export { resolveVolumeIntensityAdjustment };

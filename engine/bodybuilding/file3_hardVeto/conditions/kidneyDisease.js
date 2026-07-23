@@ -27,4 +27,4 @@ function kidneyDisease({ onDialysis = false, hasFistula = false, isDialysisDayTo
   };
 }
 
-module.exports = { kidneyDisease };
+export { kidneyDisease };

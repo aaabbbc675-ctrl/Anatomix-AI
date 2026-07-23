@@ -16,4 +16,4 @@ function applyGenderExerciseWeighting(exercises, genderAdvisory) {
   });
 }
 
-module.exports = { applyGenderExerciseWeighting, HIP_ABDUCTOR_MUSCLE_GROUPS };
+export { applyGenderExerciseWeighting, HIP_ABDUCTOR_MUSCLE_GROUPS };

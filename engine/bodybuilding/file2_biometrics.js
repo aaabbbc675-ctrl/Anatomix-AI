@@ -3,7 +3,7 @@
 // نکته‌ی مهم درباره‌ی Age: طبق تصمیم تاییدشده، ماژول کامل سنی (کودکان/سالمندان)
 // Hard Veto است و به فایل ۳ (زیرمرحله‌ی ۵.۲) تعلق دارد. اینجا برای بازه‌ی استاندارد
 // ۱۳-۵۹ سال، ضریب سن خنثی/۱.۰ است — یعنی این فایل فعلاً به سن ورودی نیازی ندارد.
-const { getSlotStandard, ISOLATION_RATIO, EXPERIENCE_VOLUME_RANGE } = require("./slotStandards");
+import { getSlotStandard, ISOLATION_RATIO, EXPERIENCE_VOLUME_RANGE } from "./slotStandards.js";
 
 const FEMALE_REST_FACTOR = 0.85; // ماژول ۳ سند: کاهش ۱۵٪ استراحت
 const FEMALE_VOLUME_FACTOR = 1.15; // ماژول ۳ سند: افزایش ۱۰-۱۵٪ حجم (ceil)
@@ -80,4 +80,4 @@ function computeBiometrics({ main_goal, experience, gender, genderOverrides }) {
   };
 }
 
-module.exports = { computeBiometrics };
+export { computeBiometrics };

@@ -28,4 +28,4 @@ function heartDisease() {
   };
 }
 
-module.exports = { heartDisease };
+export { heartDisease };

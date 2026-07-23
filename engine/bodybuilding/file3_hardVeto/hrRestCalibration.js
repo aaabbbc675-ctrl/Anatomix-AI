@@ -17,4 +17,4 @@ function calibrateAerobicPercent(hrRest, baseAerobicPercent) {
   };
 }
 
-module.exports = { calibrateAerobicPercent };
+export { calibrateAerobicPercent };

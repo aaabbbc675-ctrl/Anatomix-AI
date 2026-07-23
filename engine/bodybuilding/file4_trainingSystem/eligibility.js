@@ -1,5 +1,5 @@
-const { TECHNIQUES } = require("./techniques");
-const { applyTempoRule } = require("./tempoRule");
+import { TECHNIQUES } from "./techniques.js";
+import { applyTempoRule } from "./tempoRule.js";
 
 // خروجی reason وقتی eligible=false باشد، پیام صریح می‌دهد — همان چیزی که UI
 // (زیرمرحله‌ی ۵.۵) برای غیرفعال/خاکستری‌کردن گزینه در ویزارد لازم دارد.
@@ -83,4 +83,4 @@ function applyTrainingTechnique({
   };
 }
 
-module.exports = { applyTrainingTechnique };
+export { applyTrainingTechnique };

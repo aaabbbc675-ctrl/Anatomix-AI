@@ -21,4 +21,4 @@ function applyTempoRule(intensityMultiplier, tempo) {
   return Math.min(intensityMultiplier, SLOW_ECCENTRIC_INTENSITY_CAP);
 }
 
-module.exports = { applyTempoRule, parseEccentricSeconds };
+export { applyTempoRule, parseEccentricSeconds };

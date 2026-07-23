@@ -23,4 +23,4 @@ function processCoachGoal(input) {
   };
 }
 
-module.exports = { processCoachGoal, VALID_GOALS, VALID_EXPERIENCE };
+export { processCoachGoal, VALID_GOALS, VALID_EXPERIENCE };

@@ -22,4 +22,4 @@ function multipleSclerosis() {
   };
 }
 
-module.exports = { multipleSclerosis };
+export { multipleSclerosis };

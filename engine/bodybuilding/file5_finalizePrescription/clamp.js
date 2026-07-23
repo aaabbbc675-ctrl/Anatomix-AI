@@ -1,4 +1,4 @@
-const { mergeRange } = require("../file3_hardVeto/mergeRestrictions");
+import { mergeRange } from "../file3_hardVeto/mergeRestrictions.js";
 
 function clampScalarIntoRange(value, range) {
   if (!range) return value;
@@ -36,4 +36,4 @@ function clampRange(rawRange, restrictionRange) {
   return merged;
 }
 
-module.exports = { clampScalarIntoRange, clampRange };
+export { clampScalarIntoRange, clampRange };

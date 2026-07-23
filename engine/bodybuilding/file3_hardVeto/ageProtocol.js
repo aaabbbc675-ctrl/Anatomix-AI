@@ -84,4 +84,4 @@ function evaluateAgeProtocol({ age, experience, main_goal, coachConfirmedAgeExce
   return { requiresConfirmation: true, confirmationReason, patch };
 }
 
-module.exports = { evaluateAgeProtocol, CHILD_MAX_AGE, ELDERLY_MIN_AGE };
+export { evaluateAgeProtocol, CHILD_MAX_AGE, ELDERLY_MIN_AGE };

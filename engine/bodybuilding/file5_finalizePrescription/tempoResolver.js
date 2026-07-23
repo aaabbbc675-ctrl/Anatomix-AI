@@ -1,4 +1,4 @@
-const { parseEccentricSeconds } = require("../file4_trainingSystem/tempoRule");
+import { parseEccentricSeconds } from "../file4_trainingSystem/tempoRule.js";
 
 // اگر فایل ۳ یک یا چند تمپوی اجباری داده باشد، این یک تجویز مطلق است (مثل
 // «تمپو روان اجباری 2-0-2-0» برای بیماری قلبی) — نه صرفاً یک آستانه‌ی حداقلیِ
@@ -22,4 +22,4 @@ function resolveTempo(rawTempo, tempoOverrides = []) {
   return safestTempo;
 }
 
-module.exports = { resolveTempo };
+export { resolveTempo };
