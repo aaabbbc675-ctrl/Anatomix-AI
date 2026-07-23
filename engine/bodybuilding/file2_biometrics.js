@@ -14,7 +14,7 @@ function scaleRange([min, max], factor, roundFn = Math.round) {
   return [min === null ? null : roundFn(min * factor), max === null ? null : roundFn(max * factor)];
 }
 
-function computeBiometrics({ main_goal, experience, gender }) {
+function computeBiometrics({ main_goal, experience, gender, genderOverrides }) {
   if (!EXPERIENCE_VOLUME_RANGE[experience]) {
     throw new Error(`experience نامعتبر برای محاسبه‌ی بیومتریک: "${experience}"`);
   }
@@ -46,13 +46,23 @@ function computeBiometrics({ main_goal, experience, gender }) {
   let restSec = slot.restSec;
   let genderAdvisory = null;
   if (gender === "female") {
-    startingWeeklySets = Math.ceil(startingWeeklySets * FEMALE_VOLUME_FACTOR);
-    progressionCeiling = Math.ceil(progressionCeiling * FEMALE_VOLUME_FACTOR);
-    restSec = scaleRange(restSec, FEMALE_REST_FACTOR);
+    // طبق بخش ۳.۶ سند: این ضرایب فقط «پیشنهادی» هستند و مربی باید بتواند
+    // دستی override کند. اگر override داده شده، همان استفاده می‌شود؛ در هر دو
+    // حالت مقدار پیشنهادی سیستم هم نگه داشته می‌شود تا دکمه‌ی «بازگردانی به
+    // پیشنهاد سیستم» (زیرمرحله‌ی ۵.۵) داده‌ی لازم را داشته باشد.
+    const appliedVolumeFactor = genderOverrides?.volumeFactor ?? FEMALE_VOLUME_FACTOR;
+    const appliedRestFactor = genderOverrides?.restFactor ?? FEMALE_REST_FACTOR;
+    const isOverridden = genderOverrides?.volumeFactor !== undefined || genderOverrides?.restFactor !== undefined;
+
+    startingWeeklySets = Math.ceil(startingWeeklySets * appliedVolumeFactor);
+    progressionCeiling = Math.ceil(progressionCeiling * appliedVolumeFactor);
+    restSec = scaleRange(restSec, appliedRestFactor);
     genderAdvisory = {
       hipAbductorSelectionBoost: FEMALE_HIP_SELECTION_BOOST, // مصرف در فایل ۴
-      appliedRestFactor: FEMALE_REST_FACTOR,
-      appliedVolumeFactor: FEMALE_VOLUME_FACTOR,
+      appliedRestFactor,
+      appliedVolumeFactor,
+      isOverridden,
+      systemSuggested: { restFactor: FEMALE_REST_FACTOR, volumeFactor: FEMALE_VOLUME_FACTOR },
     };
   }
 
