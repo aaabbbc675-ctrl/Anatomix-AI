@@ -8,6 +8,7 @@ import {
 } from "../../../engine/corrective/file5_ageAdjustments.js";
 import { AFFECTED_SIDES } from "../../../engine/corrective/file7_asymmetry.js";
 import { VALID_USER_LEVELS } from "../../../engine/corrective/file1_systemInputs.js";
+import { DEFORMITY_PRIORITY_TIERS } from "../../../engine/corrective/file9_syndromeDetection.js";
 
 // enum ها همه از خودِ فایل‌های موتور اصلاحی import می‌شوند (همان الگوی
 // src/pages/ManualAssessmentInput.jsx) — بازنویسی دستی نمی‌شوند تا اگر موتور
@@ -33,6 +34,14 @@ const ELDERLY_EXPERIENCE_LABELS = { beginner: "مبتدی", professional: "حر�
 const ELDERLY_FOCUS_LABELS = { endurance: "استقامتی", massMaintenance: "حفظ توده" };
 const ELDERLY_MOVEMENT_LABELS = { isolated: "ایزوله", compound: "مرکب" };
 
+// برچسب‌ها دقیقاً همان اصطلاحات کامنت file9_syndromeDetection.js‌اند
+// («ستون فقرات/لگن»، «مفصل بزرگ»، «مچ/کف پا») — چیزی اختراع نشده.
+const PRIORITY_CATEGORY_LABELS = {
+  spine_pelvis: "ستون فقرات / لگن",
+  big_joints: "مفصل بزرگ",
+  chain_end: "انتهای زنجیره (مچ / کف پا)",
+};
+
 function defaultAssessment() {
   return {
     userLevel: VALID_USER_LEVELS[0],
@@ -54,7 +63,9 @@ function defaultAssessment() {
 
     activeInjuriesCount: 0,
     deformitiesCount: 0,
-    coachPrioritizedDeformitiesText: "",
+    // هر ردیف هم نام ناهنجاری و هم priorityCategory را می‌گیرد — لازم برای
+    // applyDeformityFunnel واقعی (file9)، نه فقط یک فیلد متنی آزاد.
+    prioritizedDeformities: [],
 
     hasSShapeDeformity: false,
     affectedSide: "Unknown",
@@ -90,13 +101,19 @@ function buildCorrectiveAssessment(form) {
   const diseases = SUPPORTED_DISEASES.filter((key) => form.diseases[key]);
   const availableEquipment = EQUIPMENT_OPTIONS.filter((key) => form.availableEquipment[key]);
 
+  const namedDeformityRows = form.prioritizedDeformities.filter((d) => d.name.trim().length > 0);
+
   return {
     // بدون دستگاه واقعی هنوز — همان محدودیت مستندشده‌ی ManualAssessmentInput.
     assessmentData: null,
     userLevel: form.userLevel,
     bodybuildingRequest: form.bodybuildingRequest,
     workoutDaysPerWeek: form.daysPerWeek,
-    coachPrioritizedDeformities: parseTagList(form.coachPrioritizedDeformitiesText),
+    // شکل file1 (processIntakeInputs): آرایه‌ای صرف از رشته.
+    coachPrioritizedDeformities: namedDeformityRows.map((d) => d.name.trim()),
+    // شکل file9 (applyDeformityFunnel): {id, priorityCategory} — این دو خروجی
+    // از یک فهرست UI مشترک مشتق می‌شوند، نه دو ورودی جدا از کاربر.
+    deformitiesForFunnel: namedDeformityRows.map((d) => ({ id: d.name.trim(), priorityCategory: d.priorityCategory })),
     manualBlacklistExercises: form.manualBlacklistExercises,
     generalNotes: form.generalNotes,
 
@@ -150,6 +167,25 @@ export default function CorrectiveAssessmentForm({ initialValues, onSubmit, onCa
   }
   function toggleEquipment(key) {
     setForm((prev) => ({ ...prev, availableEquipment: { ...prev.availableEquipment, [key]: !prev.availableEquipment[key] } }));
+  }
+
+  function addDeformityRow() {
+    setForm((prev) => ({
+      ...prev,
+      prioritizedDeformities: [...prev.prioritizedDeformities, { name: "", priorityCategory: DEFORMITY_PRIORITY_TIERS[0] }],
+    }));
+  }
+  function updateDeformityRow(index, key, value) {
+    setForm((prev) => ({
+      ...prev,
+      prioritizedDeformities: prev.prioritizedDeformities.map((row, i) => (i === index ? { ...row, [key]: value } : row)),
+    }));
+  }
+  function removeDeformityRow(index) {
+    setForm((prev) => ({
+      ...prev,
+      prioritizedDeformities: prev.prioritizedDeformities.filter((_, i) => i !== index),
+    }));
   }
 
   function addBlacklistRow() {
@@ -317,16 +353,30 @@ export default function CorrectiveAssessmentForm({ initialValues, onSubmit, onCa
             onChange={(e) => updateField("deformitiesCount", Number(e.target.value))}
           />
         </label>
-        <label style={{ display: "block", marginTop: "0.5rem" }}>
-          اولویت ناهنجاری‌های مربی (آزاد، با کاما جدا کنید)
-          <input
-            type="text"
-            style={{ width: "100%" }}
-            value={form.coachPrioritizedDeformitiesText}
-            onChange={(e) => updateField("coachPrioritizedDeformitiesText", e.target.value)}
-            placeholder="مثلاً: forward_head, kyphosis"
-          />
-        </label>
+        <p style={{ marginTop: "0.75rem", marginBottom: "0.25rem" }}>اولویت ناهنجاری‌های مربی:</p>
+        {form.prioritizedDeformities.map((row, index) => (
+          <div key={index} style={{ display: "flex", gap: "0.5rem", marginTop: "0.3rem" }}>
+            <input
+              type="text"
+              placeholder="نام ناهنجاری (مثلاً: forward_head)"
+              value={row.name}
+              onChange={(e) => updateDeformityRow(index, "name", e.target.value)}
+            />
+            <select value={row.priorityCategory} onChange={(e) => updateDeformityRow(index, "priorityCategory", e.target.value)}>
+              {DEFORMITY_PRIORITY_TIERS.map((v) => (
+                <option key={v} value={v}>
+                  {PRIORITY_CATEGORY_LABELS[v] || v}
+                </option>
+              ))}
+            </select>
+            <button type="button" onClick={() => removeDeformityRow(index)}>
+              حذف
+            </button>
+          </div>
+        ))}
+        <button type="button" onClick={addDeformityRow} style={{ marginTop: "0.5rem" }}>
+          + افزودن ناهنجاری
+        </button>
       </fieldset>
 
       <fieldset style={{ marginTop: "1rem" }}>
