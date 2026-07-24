@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { db } from "../../store/db";
 import ProgramTypeSelect from "./ProgramTypeSelect";
 import BodybuildingAssessmentForm from "./BodybuildingAssessmentForm";
+import CorrectiveAssessmentForm from "./CorrectiveAssessmentForm";
 import StageOneGate from "./StageOneGate";
 import StageTwoGate from "./StageTwoGate";
 
@@ -9,7 +10,8 @@ import StageTwoGate from "./StageTwoGate";
 // از آخرین coachOverrides شاگرد — هرگز خروجی منجمد قدیمی به‌عنوان نتیجه‌ی فعلی
 // نمایش داده نمی‌شود؛ موتور همیشه دوباره روی مقادیر (قابل‌ویرایش) اجرا می‌شود.
 export default function NewProgramWizard({ studentId, onDone, onCancel }) {
-  const [step, setStep] = useState("type"); // type | assessment | stage1 | stage2
+  // type | assessment | stage1 | stage2 (بدنسازی) | correctiveAssessment | correctiveStage1 (اصلاحی)
+  const [step, setStep] = useState("type");
   const [initialAssessment, setInitialAssessment] = useState(null);
   const [assessment, setAssessment] = useState(null);
   const [cascadeResult, setCascadeResult] = useState(null);
@@ -33,6 +35,7 @@ export default function NewProgramWizard({ studentId, onDone, onCancel }) {
       <ProgramTypeSelect
         onSelect={(type) => {
           if (type === "bodybuilding") setStep("assessment");
+          else if (type === "corrective") setStep("correctiveAssessment");
         }}
       />
     );
@@ -48,6 +51,32 @@ export default function NewProgramWizard({ studentId, onDone, onCancel }) {
           setStep("stage1");
         }}
       />
+    );
+  }
+
+  if (step === "correctiveAssessment") {
+    return (
+      <CorrectiveAssessmentForm
+        onCancel={onCancel}
+        onSubmit={(values) => {
+          setAssessment(values);
+          setStep("correctiveStage1");
+        }}
+      />
+    );
+  }
+
+  // Stage 1 اصلاحی (تایید معماری کلان) هنوز ساخته نشده — زیرکامیت بعدی همین
+  // دسته است؛ این فقط سرجای خالی است، نه بازسازی/حدس زدن Stage1 واقعی.
+  if (step === "correctiveStage1") {
+    return (
+      <div style={{ padding: "1.5rem", maxWidth: 640, margin: "0 auto" }}>
+        <button type="button" onClick={() => setStep("correctiveAssessment")}>
+          ← بازگشت
+        </button>
+        <h2>مرحله‌ی بعد — تایید معماری کلان اصلاحی</h2>
+        <p style={{ color: "#666" }}>این بخش (Stage 1 اصلاحی) هنوز ساخته نشده — زیرکامیت بعدی همین دسته است.</p>
+      </div>
     );
   }
 
