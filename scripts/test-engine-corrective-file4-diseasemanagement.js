@@ -66,12 +66,25 @@ function assertThrows(fn, messageIncludes, description) {
     assert(result.equipment_priority.includes("closed_kinetic_chain"));
   });
 
-  check("قلبی/فشارخون: سقف RPE=۵، استراحت حداقل ۹۰، تمپو ۲-۰-۲-۰، Valsalva/Isometric ممنوع", () => {
+  check("قلبی/فشارخون: سقف RPE=۵، استراحت حداقل ۹۰، تمپو ۲-۰-۲-۰، Valsalva/Isometric ممنوع، مکث ایزومتریک=۰", () => {
     const result = evaluateDiseaseManagement({ diseases: ["heartOrHypertension"] });
     assertDeepEqual(result.rpe_range, [null, 5]);
     assert(result.rest_sec_min === 90);
     assertDeepEqual(result.tempo_overrides, ["2-0-2-0"]);
     ["Valsalva", "Isometric"].forEach((tag) => assert(result.banned_tags.includes(tag)));
+    assert(result.isometricPauseMustBeZero === true, "بخش ۳.۱۰: Hypertension=True → همه‌ی مکث‌های ایزومتریک=۰");
+  });
+
+  check("بیماری‌ای غیر از قلبی (مثلاً دیابت به‌تنهایی): isometricPauseMustBeZero=false", () => {
+    const result = evaluateDiseaseManagement({ diseases: ["diabetes"] });
+    assert(result.isometricPauseMustBeZero === false);
+  });
+
+  check("قلبی + آرتروز هم‌زمان: isometricPauseMustBeZero با OR ترکیب می‌شود (نه AND) و همچنان true می‌ماند", () => {
+    const result = evaluateDiseaseManagement({ diseases: ["heartOrHypertension", "arthritis"] });
+    assert(result.isometricPauseMustBeZero === true);
+    // اطمینان از اینکه merge معمولی هم دست‌نخورده کار می‌کند (rep_range فقط از آرتروز)
+    assertDeepEqual(result.rep_range, [15, 20]);
   });
 
   check("فلج مغزی: استراحت حداقل ۹۰، تمپو ۴-۰-۲-۰، انفجاری ممنوع، اولویت کشش ایستا", () => {

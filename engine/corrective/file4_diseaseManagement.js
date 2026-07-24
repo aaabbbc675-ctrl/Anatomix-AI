@@ -48,6 +48,12 @@ function heartOrHypertension() {
     rest_sec_min: 90,
     tempo_overrides: ["2-0-2-0"],
     banned_tags: ["Valsalva", "Isometric"],
+    // هم‌شکل با isometricPauseMustBeZero در file5 (سالمند) — طبق بخش ۳.۱۰
+    // سند: «اگر Hypertension=True یا Age≥۶۰ → همه‌ی مکث‌های ایزومتریک=۰».
+    // نکته: این فیلد جزو شکل استاندارد RestrictionPatch (emptyPatch) نیست،
+    // پس اگر از مسیر mergeRestrictions/mergeTwo عبور کند بی‌صدا حذف می‌شود؛
+    // evaluateDiseaseManagement پایین آن را جدا از merge محاسبه می‌کند.
+    isometricPauseMustBeZero: true,
   };
 }
 
@@ -99,7 +105,13 @@ function evaluateDiseaseManagement({ diseases = [], onDialysis = false, hasFistu
   if (diseases.includes("multipleSclerosis")) patches.push(multipleSclerosis());
   if (diseases.includes("kidneyDisease")) patches.push(kidneyDisease({ onDialysis, hasFistula, isDialysisDayToday }));
 
-  return mergeRestrictions(patches);
+  const merged = mergeRestrictions(patches);
+  // isometricPauseMustBeZero جزو شکل emptyPatch/mergeTwo نیست (بالا توضیح
+  // داده شد چرا)، پس جدا با OR روی همان پچ‌های خام محاسبه و اضافه می‌شود —
+  // نه از دل merge، تا بی‌صدا حذف نشود.
+  const isometricPauseMustBeZero = patches.some((patch) => patch.isometricPauseMustBeZero === true);
+
+  return { ...merged, isometricPauseMustBeZero };
 }
 
 // --- معماری اجباری جلسه (بخش ۳.۳ سند، «تریگر» + «معماری اجباری جلسه») ---
