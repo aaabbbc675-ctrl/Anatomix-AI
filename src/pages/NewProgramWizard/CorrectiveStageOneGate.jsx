@@ -134,6 +134,12 @@ export default function CorrectiveStageOneGate({ assessment, onConfirm, onBack }
           )}
         </tbody>
       </table>
+      {!sessionArchitecture.medicalModeActive && (
+        <p style={{ marginTop: "0.4rem", fontSize: "0.85rem", color: "#666" }}>
+          بدون احتساب گرم‌کردن/سردکردن، چون سند برای حالت غیرپزشکی عددی مشخص نکرده — اعداد بالا فقط زمان بدنه‌ی اصلی
+          را نشان می‌دهند.
+        </p>
+      )}
 
       {aerobicFitnessDrop?.restricted && (
         <div style={{ marginTop: "1rem", padding: "0.75rem", border: "1px solid #ddd", borderRadius: 8 }}>
