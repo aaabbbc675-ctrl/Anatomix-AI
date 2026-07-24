@@ -4,7 +4,7 @@ import StudentSearchBar from "../components/StudentSearchBar";
 import StudentCard from "../components/StudentCard";
 import NewStudentModal from "../components/NewStudentModal";
 
-export default function Dashboard({ onOpenStudent }) {
+export default function Dashboard({ onOpenStudent, onOpenManualInput }) {
   const [students, setStudents] = useState([]);
   const [programCounts, setProgramCounts] = useState({});
   const [loading, setLoading] = useState(true);
@@ -48,6 +48,7 @@ export default function Dashboard({ onOpenStudent }) {
       <div style={{ display: "flex", gap: "0.75rem", marginBottom: "1.5rem" }}>
         <StudentSearchBar onSearch={loadStudents} />
         <button onClick={() => setShowNewStudentModal(true)}>+ افزودن شاگرد جدید</button>
+        {onOpenManualInput && <button onClick={onOpenManualInput}>ابزار ورودی دستی (تست موتورها)</button>}
       </div>
 
       {loading && <p>در حال بارگذاری...</p>}

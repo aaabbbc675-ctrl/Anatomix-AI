@@ -7,6 +7,10 @@ contextBridge.exposeInMainWorld("anatomixEnv", {
   isElectron: true,
 });
 
+contextBridge.exposeInMainWorld("anatomixFile", {
+  saveJsonFile: (defaultFileName, data) => ipcRenderer.invoke("dialog:saveJsonFile", { defaultFileName, data }),
+});
+
 contextBridge.exposeInMainWorld("anatomixDB", {
   students: {
     create: (input) => ipcRenderer.invoke("db:students:create", input),

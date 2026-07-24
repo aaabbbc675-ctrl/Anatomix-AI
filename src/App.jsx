@@ -2,13 +2,14 @@ import React, { useState } from "react";
 import Dashboard from "./pages/Dashboard";
 import StudentProfile from "./pages/StudentProfile";
 import NewProgramWizard from "./pages/NewProgramWizard";
+import ManualAssessmentInput from "./pages/ManualAssessmentInput";
 
 // ناویگیشن ساده با state داخلی، بدون react-router — سه نمای سطح‌بالا هنوز با
 // یک state machine کوچک قابل مدیریت است؛ وقتی مسیرهای بیشتری (اصلاحی/تغذیه/...)
 // فعال شدند، react-router-dom را همان‌جا معرفی می‌کنیم.
 export default function App() {
   const [selectedStudentId, setSelectedStudentId] = useState(null);
-  const [view, setView] = useState("dashboard"); // dashboard | profile | wizard
+  const [view, setView] = useState("dashboard"); // dashboard | profile | wizard | manualInput
   const [profileRefreshKey, setProfileRefreshKey] = useState(0);
 
   function openStudent(id) {
@@ -18,7 +19,9 @@ export default function App() {
 
   return (
     <div style={{ fontFamily: "Tahoma, sans-serif" }}>
-      {view === "dashboard" && <Dashboard onOpenStudent={openStudent} />}
+      {view === "dashboard" && <Dashboard onOpenStudent={openStudent} onOpenManualInput={() => setView("manualInput")} />}
+
+      {view === "manualInput" && <ManualAssessmentInput onBack={() => setView("dashboard")} />}
 
       {view === "profile" && (
         <StudentProfile

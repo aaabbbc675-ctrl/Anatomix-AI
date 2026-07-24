@@ -3,6 +3,7 @@ const path = require("path");
 const { openDatabase } = require("./db/connection");
 const { getUserDataDbPath } = require("./db/userDataPath");
 const { registerIpcHandlers } = require("./db/ipcHandlers");
+const { registerFileDialogHandlers } = require("./fileDialogHandlers");
 
 function createWindow() {
   const win = new BrowserWindow({
@@ -26,6 +27,7 @@ function createWindow() {
 app.whenReady().then(() => {
   const db = openDatabase(getUserDataDbPath());
   registerIpcHandlers(db);
+  registerFileDialogHandlers();
 
   createWindow();
 
