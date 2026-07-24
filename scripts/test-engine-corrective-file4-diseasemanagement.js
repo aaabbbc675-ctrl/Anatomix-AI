@@ -46,6 +46,9 @@ function assertThrows(fn, messageIncludes, description) {
   const { evaluateDiseaseManagement, resolveMedicalModeSessionArchitecture } = await import(
     "../engine/corrective/file4_diseaseManagement.js"
   );
+  // همان وابستگی واقعی که خودِ file4 برای ترکیب محدودیت‌ها استفاده می‌کند —
+  // برای اثبات مستقیم "بیشترین برنده است" (mergeMax)، نه فقط حدس از رفتار.
+  const { mergeRestrictions, emptyPatch } = await import("../engine/bodybuilding/file3_hardVeto/mergeRestrictions.js");
 
   console.log("\n[هر بیماری جدا]");
   check("دیابت: حذف تعادل یک‌طرفه بی‌قیدوشرط + هشدار کربوهیدرات", () => {
@@ -129,6 +132,15 @@ function assertThrows(fn, messageIncludes, description) {
     assert(result.rest_sec_min === 90);
     assertDeepEqual([...result.tempo_overrides].sort(), ["2-0-2-0", "4-0-2-0"].sort());
     ["Valsalva", "Isometric", "Explosive"].forEach((tag) => assert(result.banned_tags.includes(tag)));
+  });
+
+  check("اثبات مستقیم mergeMax (نه mergeMin) روی rest_sec_min: چون هر دو بیماری واقعی سند دقیقاً ۹۰ می‌دهند، این عدد به‌تنهایی ثابت نمی‌کند بیشترین برنده است یا کمترین — این تست همان مکانیزم واقعی file4 (mergeRestrictions) را با دو مقدار متفاوت مستقیماً صدا می‌زند", () => {
+    const lower = { ...emptyPatch(), rest_sec_min: 90 };
+    const higher = { ...emptyPatch(), rest_sec_min: 150 };
+    const mergedLowFirst = mergeRestrictions([lower, higher]);
+    const mergedHighFirst = mergeRestrictions([higher, lower]);
+    assert(mergedLowFirst.rest_sec_min === 150, `انتظار بیشترین (۱۵۰) داشتیم، گرفتیم ${mergedLowFirst.rest_sec_min}`);
+    assert(mergedHighFirst.rest_sec_min === 150, "ترتیب ورودی نباید نتیجه را عوض کند");
   });
 
   console.log("\n[معماری اجباری جلسه — تریگر + مرزهای دقیق]");
