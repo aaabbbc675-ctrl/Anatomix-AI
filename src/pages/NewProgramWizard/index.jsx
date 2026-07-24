@@ -4,6 +4,7 @@ import ProgramTypeSelect from "./ProgramTypeSelect";
 import BodybuildingAssessmentForm from "./BodybuildingAssessmentForm";
 import CorrectiveAssessmentForm from "./CorrectiveAssessmentForm";
 import CorrectiveStageOneGate from "./CorrectiveStageOneGate";
+import CorrectiveStageTwoGate from "./CorrectiveStageTwoGate";
 import StageOneGate from "./StageOneGate";
 import StageTwoGate from "./StageTwoGate";
 
@@ -81,17 +82,15 @@ export default function NewProgramWizard({ studentId, onDone, onCancel }) {
     );
   }
 
-  // Stage 2 اصلاحی (انتخاب واقعی حرکات) هنوز ساخته نشده — زیرکامیت بعدی همین
-  // دسته است؛ این فقط سرجای خالی است، نه بازسازی/حدس زدن Stage2 واقعی.
   if (step === "correctiveStage2") {
     return (
-      <div style={{ padding: "1.5rem", maxWidth: 640, margin: "0 auto" }}>
-        <button type="button" onClick={() => setStep("correctiveStage1")}>
-          ← بازگشت
-        </button>
-        <h2>مرحله‌ی بعد — انتخاب حرکات اصلاحی</h2>
-        <p style={{ color: "#666" }}>این بخش (Stage 2 اصلاحی) هنوز ساخته نشده — زیرکامیت بعدی همین دسته است.</p>
-      </div>
+      <CorrectiveStageTwoGate
+        studentId={studentId}
+        assessment={assessment}
+        cascadeResult={cascadeResult}
+        onBack={() => setStep("correctiveStage1")}
+        onSave={(program) => onDone(program)}
+      />
     );
   }
 
