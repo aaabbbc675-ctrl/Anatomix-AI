@@ -42,3 +42,55 @@ CREATE TABLE IF NOT EXISTS Injury_Blacklist (
   reason_note TEXT,
   created_at TEXT
 );
+
+-- طبق بخش ۲.۸ سند معماری موتور تغذیه (docs/معماری-نهایی-موتور-تغذیه-v1.md):
+-- برخلاف بانک حرکات (exercises.seed.js در حافظه)، بانک غذا یک جدول SQLite
+-- واقعی است — تصمیم صریح تاییدشده، چون ماژول ۹ سند CRUD واقعی مربی می‌خواهد
+-- و مقیاس بانک غذا برای آرایه‌ی JS مناسب نیست. foods.seed.js فقط این جدول
+-- را یک‌بار پر می‌کند، منبع مصرف runtime همین جدول است.
+CREATE TABLE IF NOT EXISTS Foods (
+  id TEXT PRIMARY KEY,
+  name_fa TEXT NOT NULL,
+  name_en TEXT,
+  category TEXT,
+  primary_macro TEXT CHECK(primary_macro IN ('protein','carb','fat')),
+
+  -- انرژی و ماکرو، به ازای ۱۰۰ گرم
+  calories REAL NOT NULL,
+  protein_g REAL NOT NULL,
+  carbs_g REAL NOT NULL,
+  net_carbs_g REAL,
+  fat_g REAL NOT NULL,
+  fiber_g REAL,
+  sugar_g REAL,
+  saturated_fat_g REAL,
+  sodium_mg REAL,
+
+  -- واحد رایج اختیاری (قاشق/لیوان/عدد) با معادل گرمی
+  common_unit_name TEXT,
+  common_unit_grams REAL,
+
+  digestion_rate TEXT CHECK(digestion_rate IN ('fast','medium','slow')),
+  pre_workout_approved INTEGER DEFAULT 0,   -- 0/1
+  post_workout_approved INTEGER DEFAULT 0,  -- 0/1
+  pre_sleep_approved INTEGER DEFAULT 0,     -- 0/1
+  satiety_index TEXT CHECK(satiety_index IN ('high','medium','low')),
+
+  is_vegan INTEGER DEFAULT 0,          -- 0/1
+  is_vegetarian INTEGER DEFAULT 0,     -- 0/1
+  gluten_free INTEGER DEFAULT 0,       -- 0/1
+  lactose_free INTEGER DEFAULT 0,      -- 0/1
+  diabetic_friendly INTEGER DEFAULT 0, -- 0/1
+  cost_tier TEXT CHECK(cost_tier IN ('economic','medium','premium')),
+
+  -- سیستم Exchange List (بخش ۲.۷ سند) — مکانیزم اصلی Smart Swap
+  exchange_group TEXT CHECK(exchange_group IN ('starch','fruit','milk','non_starchy_vegetable','lean_meat','medium_high_fat_meat','fat','free')),
+  exchange_serving_grams REAL,
+
+  protein_quality TEXT CHECK(protein_quality IN ('complete','incomplete')),
+  allergens_json TEXT,          -- JSON array، هم‌الگوی device_json_ref در Students
+  is_active INTEGER DEFAULT 1,  -- 0/1
+
+  created_at TEXT,
+  updated_at TEXT
+);

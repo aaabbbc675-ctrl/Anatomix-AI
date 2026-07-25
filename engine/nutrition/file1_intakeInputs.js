@@ -1,0 +1,154 @@
+// فایل ۱ موتور تغذیه (بخش ۳.۱ سند معماری، ایستگاه اول Pre-Generation):
+// اعتبارسنجی و شکل‌دهی پایه‌ی ورودی‌های خام فرم — نوع داده، مقادیر مجاز
+// enum. هیچ محاسبه‌ی BMR/TDEE/EA اینجا نیست — آن منطق ماژول ۱ (بخش ۲.۱) و
+// گیت EA (بخش ۱.۱) است که دسته‌ی جدای بعدی خواهد بود، نه این فایل. هم‌الگوی
+// engine/corrective/file1_systemInputs.js: تابع خالص، throw صریح فارسی روی
+// enum نامعتبر، بدون هیچ تصمیم‌گیری بالینی/محصولی.
+
+const VALID_SEX = ["male", "female"];
+
+// طبق بخش ۲.۱-ب سند: پنج سطح فعالیت جدول ضریب TDEE.
+const VALID_ACTIVITY_LEVELS = ["sedentary", "light", "moderate", "heavy", "athlete"];
+
+// طبق بخش ۲.۲ سند: هفت رشته‌ی فیزیولوژیک متمایز جدول ماتریس ماکرو. سطر
+// «بادی‌بیلدینگ در کات» یک رشته‌ی جدا نیست — بلکه همان fitness_bodybuilding
+// وقتی main_goal=fat_loss است (تصمیم تفسیری من، چون سند این را صریح نگفته؛
+// انتخاب سطر ماکرو مربوطه کار ماژول ۲ در دسته‌ی بعدی است، نه اینجا).
+const VALID_SPORT_TYPES = [
+  "fitness_bodybuilding",
+  "powerlifting_weightlifting",
+  "team_sports",
+  "combat_sports",
+  "endurance",
+  "sprint",
+  "skill_sports",
+];
+
+const VALID_MAIN_GOALS = ["fat_loss", "muscle_gain", "maintenance"];
+const VALID_BUDGET_TIERS = ["economic", "medium", "premium"];
+
+// طبق فیلترهای رژیمی/پزشکی بانک غذا (بخش ۲.۸ سند) — تا محدودیت‌های ورودی
+// ایستگاه اول مستقیماً با فیلترهای واقعی Foods قابل اعمال باشند.
+const VALID_DIETARY_RESTRICTIONS = ["vegan", "vegetarian", "gluten_free", "lactose_free", "diabetic_friendly"];
+
+const MIN_MEALS_COUNT = 3;
+const MAX_MEALS_COUNT = 8;
+
+function processIntakeInputs(input = {}) {
+  const age = Number(input.age);
+  if (!Number.isInteger(age) || age <= 0) {
+    throw new Error(`age نامعتبر: "${input.age}". باید عدد صحیح مثبت باشد.`);
+  }
+
+  const weightKg = Number(input.weight_kg);
+  if (!(weightKg > 0)) {
+    throw new Error(`weight_kg نامعتبر: "${input.weight_kg}". باید عدد مثبت باشد.`);
+  }
+
+  const heightCm = Number(input.height_cm);
+  if (!(heightCm > 0)) {
+    throw new Error(`height_cm نامعتبر: "${input.height_cm}". باید عدد مثبت باشد.`);
+  }
+
+  if (!VALID_SEX.includes(input.sex)) {
+    throw new Error(`sex نامعتبر: "${input.sex}". مقادیر مجاز: ${VALID_SEX.join(", ")}`);
+  }
+
+  // طبق بخش ۱.۱ سند: nullable عمدی — نبودش یعنی EA بعداً «محاسبه نشد»
+  // گزارش می‌شود، نه اینکه با یک فرض جایگزین جایگزین شود.
+  let bodyFatPercent = null;
+  if (input.body_fat_percent !== null && input.body_fat_percent !== undefined) {
+    bodyFatPercent = Number(input.body_fat_percent);
+    if (!(bodyFatPercent > 0 && bodyFatPercent < 100)) {
+      throw new Error(`body_fat_percent نامعتبر: "${input.body_fat_percent}". باید عددی بین ۰ و ۱۰۰ باشد یا خالی/null بماند.`);
+    }
+  }
+
+  if (!VALID_ACTIVITY_LEVELS.includes(input.activity_level)) {
+    throw new Error(`activity_level نامعتبر: "${input.activity_level}". مقادیر مجاز: ${VALID_ACTIVITY_LEVELS.join(", ")}`);
+  }
+
+  if (!VALID_SPORT_TYPES.includes(input.sport_type)) {
+    throw new Error(`sport_type نامعتبر: "${input.sport_type}". مقادیر مجاز: ${VALID_SPORT_TYPES.join(", ")}`);
+  }
+
+  if (!VALID_MAIN_GOALS.includes(input.main_goal)) {
+    throw new Error(`main_goal نامعتبر: "${input.main_goal}". مقادیر مجاز: ${VALID_MAIN_GOALS.join(", ")}`);
+  }
+
+  if (!VALID_BUDGET_TIERS.includes(input.budget_tier)) {
+    throw new Error(`budget_tier نامعتبر: "${input.budget_tier}". مقادیر مجاز: ${VALID_BUDGET_TIERS.join(", ")}`);
+  }
+
+  const mealsCountRequested = Number(input.meals_count_requested);
+  if (!Number.isInteger(mealsCountRequested) || mealsCountRequested < MIN_MEALS_COUNT || mealsCountRequested > MAX_MEALS_COUNT) {
+    throw new Error(
+      `meals_count_requested نامعتبر: "${input.meals_count_requested}". باید عدد صحیح بین ${MIN_MEALS_COUNT} تا ${MAX_MEALS_COUNT} باشد.`
+    );
+  }
+
+  // طبق بخش ۲.۳ سند: RPE عددی، هم‌الگوی computeMonthlyIntensityAdjustment
+  // در engine/corrective/monthlyFeedbackProcessor.js — نه enum سبک/متوسط/سنگین
+  // (تصمیم صریح تاییدشده، برای هم‌قراردادی بین دو موتور).
+  const sessionIntensity = Number(input.session_intensity);
+  if (!Number.isInteger(sessionIntensity) || sessionIntensity < 1 || sessionIntensity > 10) {
+    throw new Error(`session_intensity نامعتبر: "${input.session_intensity}". باید عدد صحیح RPE بین ۱ تا ۱۰ باشد.`);
+  }
+
+  const timeUntilNextSessionHours = Number(input.time_until_next_session_hours);
+  if (!(timeUntilNextSessionHours >= 0)) {
+    throw new Error(`time_until_next_session_hours نامعتبر: "${input.time_until_next_session_hours}". باید عدد ≥۰ باشد.`);
+  }
+
+  // ساعت تمرین: سند بازه‌ی عددی مشخصی برایش نگفته (فقط «ساعت تمرین» به‌عنوان
+  // یک ورودی خام ایستگاه اول)، پس اینجا فقط رشته‌ی غیرخالی پذیرفته می‌شود —
+  // بدون اختراع یک بازه‌ی عددی حدسی.
+  if (typeof input.training_time !== "string" || input.training_time.length === 0) {
+    throw new Error(`training_time نامعتبر: "${input.training_time}". باید رشته‌ی غیرخالی باشد.`);
+  }
+
+  const allergiesInput = input.allergies ?? [];
+  if (!Array.isArray(allergiesInput) || allergiesInput.some((entry) => typeof entry !== "string" || entry.length === 0)) {
+    throw new Error("allergies باید آرایه‌ای از رشته‌های غیرخالی باشد.");
+  }
+
+  const dietaryRestrictionsInput = input.dietary_restrictions ?? [];
+  if (
+    !Array.isArray(dietaryRestrictionsInput) ||
+    dietaryRestrictionsInput.some((entry) => !VALID_DIETARY_RESTRICTIONS.includes(entry))
+  ) {
+    throw new Error(
+      `dietary_restrictions نامعتبر: "${JSON.stringify(input.dietary_restrictions)}". مقادیر مجاز: ${VALID_DIETARY_RESTRICTIONS.join(", ")}`
+    );
+  }
+
+  return {
+    age,
+    weight_kg: weightKg,
+    height_cm: heightCm,
+    sex: input.sex,
+    body_fat_percent: bodyFatPercent,
+    activity_level: input.activity_level,
+    sport_type: input.sport_type,
+    main_goal: input.main_goal,
+    budget_tier: input.budget_tier,
+    meals_count_requested: mealsCountRequested,
+    training_time: input.training_time,
+    session_intensity: sessionIntensity,
+    time_until_next_session_hours: timeUntilNextSessionHours,
+    allergies: allergiesInput,
+    dietary_restrictions: dietaryRestrictionsInput,
+  };
+}
+
+export {
+  processIntakeInputs,
+  VALID_SEX,
+  VALID_ACTIVITY_LEVELS,
+  VALID_SPORT_TYPES,
+  VALID_MAIN_GOALS,
+  VALID_BUDGET_TIERS,
+  VALID_DIETARY_RESTRICTIONS,
+  MIN_MEALS_COUNT,
+  MAX_MEALS_COUNT,
+};
