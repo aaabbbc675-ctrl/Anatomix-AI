@@ -1,5 +1,8 @@
-// اسکریپت تست مستقل برای schema بانک حرکات مشترک بعد از افزودن ۴ فیلد
-// اصلاحی (بخش ۳.۱۵ سند موتور اصلاحی، دسته‌ی ۱).
+// اسکریپت تست مستقل برای schema بانک حرکات مشترک — بعد از افزودن ۴ فیلد
+// اصلاحی (بخش ۳.۱۵ سند، دسته‌ی ۱) و سپس ۲ فیلد tags/phase (تکمیل بانک
+// حرکات، کامیت ۱). تعداد رکورد و چک‌های schema به‌مرور همراه با کامیت‌های
+// بعدی (افزودن ۳۱ رکورد بدنسازی + ۴۳ رکورد اصلاحی) به‌روزرسانی می‌شوند —
+// همیشه باید بازتاب‌دهنده‌ی تعداد واقعی فعلی باشد، نه یک عدد ثابت قدیمی.
 // اجرا: node scripts/test-engine-exercises-seed-schema.js
 
 // engine/ اکنون ESM است (engine/package.json)؛ این اسکریپت CommonJS می‌ماند،
@@ -77,6 +80,19 @@ function assert(condition, message) {
     assert(sqBb.laterality === "bilateral");
     assert(sqBb.movement_type === "compound");
     assert(Array.isArray(sqBb.trainingGoal) && sqBb.trainingGoal.includes("hypertrophy"));
+  });
+
+  check("هر ۱۸ رکورد فعلی دقیقاً فیلدهای جدید tags/phase را با نوع/مقدار پیش‌فرض درست دارند", () => {
+    EXERCISES.forEach((exercise) => {
+      assert(
+        Array.isArray(exercise.tags) && exercise.tags.length === 0,
+        `${exercise.id}: tags باید آرایه‌ی خالی باشد، گرفتیم ${JSON.stringify(exercise.tags)}`
+      );
+      assert(
+        exercise.phase === null,
+        `${exercise.id}: phase باید فعلاً null باشد (بدون مقدار مستند حدس زده نشود)، گرفتیم ${JSON.stringify(exercise.phase)}`
+      );
+    });
   });
 
   console.log(`\n[test-engine-exercises-seed-schema] ${passCount} PASS, ${failCount} FAIL`);
