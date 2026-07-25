@@ -1,10 +1,10 @@
 // مصرف‌کننده‌ی gender_advisory.hipAbductorSelectionBoost (خروجی فایل ۲) —
 // طبق ماژول ۳ سند: افزایش ۳۰٪ شانس انتخاب برای Gluteus_Medius/Minimus/Hip_Abductors.
 //
-// محدودیت صادقانه: دیتاست دستی فعلی (exercises.seed.js، ۱۸ حرکت) هنوز حرکتی با
-// muscle_group دقیقاً برابر این سه تگ ندارد — این تابع کار می‌کند و تست می‌شود،
-// اما تا جایگزینی با بانک واقعی حرکات، عملاً چیزی برای وزن‌دهی در دیتاست فعلی
-// پیدا نمی‌کند. این یک محدودیت داده است، نه باگ منطقی.
+// از تکمیل بانک حرکات (bodybuilding-exercises.csv، ۳۱ رکورد) به بعد، HAB-MC
+// (دورکننده‌ی لگن با دستگاه) دقیقاً muscle_group="Gluteus_Medius" دارد — پس
+// این تابع دیگر یک محدودیت داده‌ی صرف نیست، واقعاً روی حداقل یک حرکت واقعی
+// اثر می‌گذارد (تست شده در test-engine-file4-trainingsystem.js).
 const HIP_ABDUCTOR_MUSCLE_GROUPS = ["Gluteus_Medius", "Gluteus_Minimus", "Hip_Abductors"];
 
 function applyGenderExerciseWeighting(exercises, genderAdvisory) {

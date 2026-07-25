@@ -144,10 +144,12 @@ check("بدون boost، وزن همه‌ی حرکات ۱ است", () => {
   const weighted = applyGenderExerciseWeighting(EXERCISES, null);
   assert(weighted.every((e) => e.selectionWeight === 1));
 });
-check("با boost، فقط حرکات با muscle_group مرتبط وزن بیشتر می‌گیرند (دیتاست فعلی چنین حرکتی ندارد)", () => {
+check("با boost، فقط حرکات با muscle_group مرتبط (HAB-MC=Gluteus_Medius) وزن بیشتر می‌گیرند", () => {
   const weighted = applyGenderExerciseWeighting(EXERCISES, { hipAbductorSelectionBoost: 0.3 });
   const boosted = weighted.filter((e) => e.selectionWeight !== 1);
-  assert(boosted.length === 0, "طبق محدودیت شناخته‌شده‌ی دیتاست فعلی، انتظار می‌رود صفر باشد");
+  assert(boosted.length === 1, `انتظار دقیقاً ۱ حرکت boost‌شده داشتیم (HAB-MC)، گرفتیم ${boosted.length}`);
+  assert(boosted[0].id === "HAB-MC", `حرکت boost‌شده باید HAB-MC باشد، گرفتیم ${boosted[0].id}`);
+  assert(boosted[0].selectionWeight === 1.3, `HAB-MC: selectionWeight باید ۱.۳ باشد، گرفتیم ${boosted[0].selectionWeight}`);
 });
 
 console.log("\n[فیلتر Injury_Blacklist — با دیتابیس واقعی موقت]");
@@ -168,8 +170,8 @@ check("حرکت ثبت‌شده در Injury_Blacklist شاگرد از لیست �
   const blacklistEntries = injuryBlacklist.getByStudentId(student.id);
   const filtered = filterExercisesByInjuryBlacklist(EXERCISES, blacklistEntries);
 
-  assert(EXERCISES.length === 18, "دیتاست اصلی باید دست‌نخورده بماند");
-  assert(filtered.length === 17, "دقیقاً یک حرکت باید حذف شده باشد");
+  assert(EXERCISES.length === 49, "دیتاست اصلی باید دست‌نخورده بماند");
+  assert(filtered.length === 48, "دقیقاً یک حرکت باید حذف شده باشد");
   assert(!filtered.some((e) => e.id === "BP-BB"), "پرس سینه هالتر نباید در لیست فیلترشده باشد");
 
   db.close();
