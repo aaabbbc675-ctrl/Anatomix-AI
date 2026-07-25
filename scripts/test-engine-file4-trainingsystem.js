@@ -170,8 +170,8 @@ check("حرکت ثبت‌شده در Injury_Blacklist شاگرد از لیست �
   const blacklistEntries = injuryBlacklist.getByStudentId(student.id);
   const filtered = filterExercisesByInjuryBlacklist(EXERCISES, blacklistEntries);
 
-  assert(EXERCISES.length === 49, "دیتاست اصلی باید دست‌نخورده بماند");
-  assert(filtered.length === 48, "دقیقاً یک حرکت باید حذف شده باشد");
+  assert(EXERCISES.length === 92, "دیتاست اصلی باید دست‌نخورده بماند");
+  assert(filtered.length === 91, "دقیقاً یک حرکت باید حذف شده باشد");
   assert(!filtered.some((e) => e.id === "BP-BB"), "پرس سینه هالتر نباید در لیست فیلترشده باشد");
 
   db.close();

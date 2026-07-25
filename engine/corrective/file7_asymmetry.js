@@ -56,10 +56,16 @@ function resolveExerciseSide({ exercise, affectedSide }) {
 }
 
 // --- گاردریل Unknown/S-شکل ---
-// طبق تصمیم صریح: چون هیچ حرکتی در exercises.seed.js فعلی با تگ «Bilateral
-// Core Stabilization» مشخص نشده، این فهرست پارامتر صریح از فراخوان است، نه
-// فیلتر حدسی بر اساس laterality (bilateral فقط یعنی «یک‌طرفه نیست»، نه
-// «حرکت تثبیت مرکزی است» — مثلاً اسکوات هم bilateral است).
+// طبق تصمیم صریح: coreStabilizationExerciseIds پارامتر صریح از فراخوان است،
+// نه فیلتر خودکار بر اساس laterality یا تگ حرکت — این تصمیم عوض نشده، فقط
+// دلیلش از تکمیل بانک اصلاحی دقیق‌تر شد:
+//   ۱. bilateral فقط یعنی «یک‌طرفه نیست»، نه «حرکت تثبیت مرکزی است» (مثلاً
+//      اسکوات هم bilateral است).
+//   ۲. چند حرکت واقعی الان تگ Isometric/Stabilization دارند (مثلاً
+//      ACT-CHIN-TUCK)، اما این دو تگ عمومی‌اند و به‌تنهایی معادل «Bilateral
+//      Core Stabilization» نیستند — فیلترکردن خودکار بر اساس همین دو تگ یک
+//      پروکسی غلط می‌ساخت (ACT-CHIN-TUCK حرکت گردن است، نه تثبیت مرکزی).
+// پس فهرست id همچنان باید صریح از فراخوان بیاید، نه استخراج خودکار.
 function applyUnknownSideGuardrail({ hasSShapeDeformity, affectedSide, exercises, coreStabilizationExerciseIds = [] }) {
   if (typeof hasSShapeDeformity !== "boolean") {
     throw new Error(`hasSShapeDeformity نامعتبر: "${hasSShapeDeformity}". باید true یا false باشد.`);
