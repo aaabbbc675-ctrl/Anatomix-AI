@@ -25,8 +25,16 @@ const DISEASE_LABELS = {
 
 // equipment هیچ‌جا به‌عنوان ثابت export نشده (فقط مقادیر واقعی داخل
 // exercises.seed.js) — همان فهرست ManualAssessmentInput.jsx بازاستفاده شد.
-const EQUIPMENT_OPTIONS = ["barbell", "dumbbell", "machine", "cable"];
-const EQUIPMENT_LABELS = { barbell: "هالتر", dumbbell: "دمبل", machine: "دستگاه", cable: "کابل" };
+const EQUIPMENT_OPTIONS = ["barbell", "dumbbell", "machine", "cable", "bodyweight", "foam_roller", "band"];
+const EQUIPMENT_LABELS = {
+  barbell: "هالتر",
+  dumbbell: "دمبل",
+  machine: "دستگاه",
+  cable: "کابل",
+  bodyweight: "بدون‌وزنه",
+  foam_roller: "فوم رولر",
+  band: "کش مقاومتی",
+};
 
 const USER_LEVEL_LABELS = { Beginner: "مبتدی", Intermediate: "متوسط", Advanced: "پیشرفته" };
 const AFFECTED_SIDE_LABELS = { Right: "راست", Left: "چپ", Bilateral: "دوطرفه", Unknown: "نامشخص" };

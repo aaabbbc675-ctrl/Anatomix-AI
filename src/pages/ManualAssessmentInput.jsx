@@ -35,8 +35,16 @@ const ALL_DISEASE_KEYS = [...SUPPORTED_DISEASES, ...BODYBUILDING_ONLY_CONDITIONS
 // equipment هیچ‌جا به‌عنوان یک ثابت export نشده (فقط مقادیر واقعی داخل
 // exercises.seed.js: barbell/dumbbell/machine/cable) — این فهرست از همان
 // مقادیر واقعی می‌آید، نه اختراع جدید.
-const EQUIPMENT_OPTIONS = ["barbell", "dumbbell", "machine", "cable"];
-const EQUIPMENT_LABELS = { barbell: "هالتر", dumbbell: "دمبل", machine: "دستگاه", cable: "کابل" };
+const EQUIPMENT_OPTIONS = ["barbell", "dumbbell", "machine", "cable", "bodyweight", "foam_roller", "band"];
+const EQUIPMENT_LABELS = {
+  barbell: "هالتر",
+  dumbbell: "دمبل",
+  machine: "دستگاه",
+  cable: "کابل",
+  bodyweight: "بدون‌وزنه",
+  foam_roller: "فوم رولر",
+  band: "کش مقاومتی",
+};
 
 const CAUSED_PAIN_OPTIONS = ["none", "muscle_soreness", "joint_nerve_pain"];
 const CAUSED_PAIN_LABELS = { none: "بدون درد", muscle_soreness: "کوفتگی عضلانی", joint_nerve_pain: "درد مفصلی/عصبی" };
