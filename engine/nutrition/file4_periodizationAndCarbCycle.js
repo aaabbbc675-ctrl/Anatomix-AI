@@ -7,6 +7,17 @@
 
 import { computeGenericFatFloorG, computeEnergyAvailability, CARB_FLOOR_G_PER_KG } from "./file2_energyTargets.js";
 
+// طبق بازبینی صریح تاییدشده‌ی batch ۴ (پیدا شد با بررسی مستقل بلوک ۳، نه
+// فرضی): در بلوک‌های کاهش‌یافته، وقتی تقریباً کل بار افت میانگین روی
+// Low-Day تخلیه می‌شود (چون High-Day معمولاً کربویش دست‌نخورده می‌ماند)،
+// فرمول حفظ میانگین می‌تواند lowFatG را زیر highFatG ببرد — دقیقاً برعکسِ
+// جهتی که سند ادعا می‌کند (Low-Day باید چربی بیشتر داشته باشد). طبق تصمیم
+// صریح: این جهت هرگز نقض نمی‌شود (کلامپ)؛ اگر کلامپ فعال شد، میانگین
+// واقعی دیگر دقیقاً با target_calories برابر نیست — این انحراف صادقانه
+// گزارش می‌شود (average_calories_deviated_from_target)، نه پنهان یا فقط
+// علامت‌گذاری بدون اصلاح.
+const MIN_LOW_HIGH_FAT_MARGIN_G = 0.1;
+
 // --- لایه‌ی ۱: دوره‌بندی بلوکی (بخش ۲.۴) ---
 //
 // خوانش من از «چربی فقط تا کف ۲۰٪ کالری — پس از رسیدن به کف چربی، کاهش فقط
@@ -82,15 +93,34 @@ function deriveHighLowFatFromCarbSplit({ protein_g, high_carb_g, low_carb_g, tar
   const highFatG = computeGenericFatFloorG({ target_calories, weight_kg });
   const highDayCalories = protein_g * 4 + high_carb_g * 4 + highFatG * 9;
   const lowDayCalories = 2 * target_calories - highDayCalories;
-  const lowFatG = (lowDayCalories - protein_g * 4 - low_carb_g * 4) / 9;
+  const rawLowFatG = (lowDayCalories - protein_g * 4 - low_carb_g * 4) / 9;
 
   const warnings = [];
-  if (lowFatG < 0) {
+  if (rawLowFatG < 0) {
     warnings.push({ code: "target_calories_unrealistic", severity: "caution", coach_note: null });
-  } else if (lowFatG <= highFatG) {
-    // طبق تایید صریح: کد جدید — فرض جهت سند (Low-Day چربی بیشتر) اینجا
-    // صریحاً تست می‌شود، نه فرض گرفته می‌شود.
-    warnings.push({ code: "low_day_fat_below_high_day", severity: "caution", coach_note: null });
+  }
+
+  // کلامپ جهت: طبق تصمیم صریح تاییدشده، Low-Day هرگز چربی کمتر یا مساوی
+  // High-Day نمی‌گیرد (حداقل فاصله‌ی معنادار). اگر محاسبه‌ی خام این جهت را
+  // نقض کند، عدد اصلاح می‌شود و انحراف از میانگین دقیق صادقانه گزارش
+  // می‌شود — نه اینکه جهت غلط بی‌سروصدا برگردانده شود.
+  let lowFatG = rawLowFatG;
+  if (rawLowFatG <= highFatG + MIN_LOW_HIGH_FAT_MARGIN_G) {
+    lowFatG = highFatG + MIN_LOW_HIGH_FAT_MARGIN_G;
+    // اندازه‌ی انحراف نامحدود است (می‌تواند از چند کالری تا چند صد کالری
+    // باشد، بسته به شدت عدم‌تعادل تقسیم روزها) — پس عدد واقعی در خودِ
+    // هشدار درج می‌شود، نه فقط یک پرچم صریح بدون بزرگی. severity یکسان
+    // (caution) می‌ماند چون سند فقط دو سطح تعریف کرده (بخش ۳.۲)، اختراع
+    // سطح سوم درست نیست؛ اما عدد دقیق پنهان نمی‌شود.
+    const actualHighDayCalories = protein_g * 4 + high_carb_g * 4 + highFatG * 9;
+    const actualLowDayCalories = protein_g * 4 + low_carb_g * 4 + lowFatG * 9;
+    const actualAverageCalories = (actualHighDayCalories + actualLowDayCalories) / 2;
+    warnings.push({
+      code: "average_calories_deviated_from_target",
+      severity: "caution",
+      coach_note: null,
+      deviation_kcal: actualAverageCalories - target_calories,
+    });
   }
 
   return { high_fat_g: highFatG, low_fat_g: lowFatG, warnings };

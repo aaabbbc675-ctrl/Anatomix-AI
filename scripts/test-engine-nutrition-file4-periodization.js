@@ -163,7 +163,11 @@ function assert(condition, message) {
     assert(result.low_fat_g > result.high_fat_g, "جهت سند: Low-Day باید چربی بیشتری داشته باشد");
     assert(result.warnings.length === 0);
   });
-  check("چربی Low-Day منفی می‌شود → target_calories_unrealistic (سناریوی مصنوعی حدی)", () => {
+  check("چربی خام Low-Day منفی می‌شود → کلامپ فعال + target_calories_unrealistic + average_calories_deviated_from_target (هر دو، سناریوی مصنوعی حدی)", () => {
+    // خام: rawLowFatG=-33.33 (منفی). کلامپ: lowFatG=60.1 (highFatG+0.1).
+    // انحراف میانگین واقعی از هدف: ۴۲۰.۴۵ کالری — عمداً خیلی بزرگ‌تر از
+    // سناریوی واقعی بلوک ۳ (۷۰.۴۵)، تا نشان دهد اندازه‌ی انحراف نامحدود
+    // است و باید عدد واقعی همیشه دیده شود، نه فقط یک پرچم بدون بزرگی.
     const result = deriveHighLowFatFromCarbSplit({
       protein_g: 120,
       high_carb_g: 1000,
@@ -171,11 +175,19 @@ function assert(condition, message) {
       target_calories: 2700,
       weight_kg: 80,
     });
-    assertClose(result.low_fat_g, -33.3333, 0.001);
-    assert(result.warnings.length === 1);
-    assert(result.warnings[0].code === "target_calories_unrealistic");
+    assertClose(result.high_fat_g, 60, 0.001);
+    assertClose(result.low_fat_g, 60.1, 0.001, "چربی خام منفی بود، باید به highFatG+0.1 کلامپ شده باشد");
+    assert(result.low_fat_g > result.high_fat_g, "جهت هرگز نباید نقض شود، حتی در حالت حدی");
+    assert(result.warnings.length === 2, `انتظار دو هشدار داشتیم (منفی بودن + انحراف کلامپ)، گرفتیم: ${JSON.stringify(result.warnings)}`);
+    assert(result.warnings.some((w) => w.code === "target_calories_unrealistic"));
+    const deviationWarning = result.warnings.find((w) => w.code === "average_calories_deviated_from_target");
+    assert(deviationWarning, "باید average_calories_deviated_from_target هم صادر شده باشد");
+    assert(deviationWarning.severity === "caution");
+    assertClose(deviationWarning.deviation_kcal, 420.45, 0.01, "انحراف واقعی باید عدد صریح داشته باشد، نه پنهان بماند");
   });
-  check("چربی Low-Day مثبت اما کمتر از High-Day → low_day_fat_below_high_day", () => {
+  check("چربی خام Low-Day مثبت اما زیر کف‌فاصله از High-Day → فقط کلامپ + average_calories_deviated_from_target (بدون target_calories_unrealistic)", () => {
+    // خام: rawLowFatG=33.33 (مثبت، اما ≤ highFatG+0.1=60.1). کلامپ فعال
+    // می‌شود اما چون خام منفی نبود، target_calories_unrealistic نباید بیاید.
     const result = deriveHighLowFatFromCarbSplit({
       protein_g: 120,
       high_carb_g: 600,
@@ -183,12 +195,13 @@ function assert(condition, message) {
       target_calories: 2700,
       weight_kg: 80,
     });
-    assertClose(result.low_fat_g, 33.3333, 0.001);
     assertClose(result.high_fat_g, 60, 0.001);
-    assert(result.low_fat_g < result.high_fat_g);
-    assert(result.warnings.length === 1);
-    assert(result.warnings[0].code === "low_day_fat_below_high_day");
+    assertClose(result.low_fat_g, 60.1, 0.001);
+    assert(result.low_fat_g > result.high_fat_g);
+    assert(result.warnings.length === 1, `انتظار فقط یک هشدار داشتیم، گرفتیم: ${JSON.stringify(result.warnings)}`);
+    assert(result.warnings[0].code === "average_calories_deviated_from_target");
     assert(result.warnings[0].severity === "caution");
+    assertClose(result.warnings[0].deviation_kcal, 120.45, 0.01);
   });
 
   console.log("\n[processPeriodizationAndCarbCycle — یکپارچه، سه بلوک]");
@@ -211,8 +224,12 @@ function assert(condition, message) {
     //   کاهش کربو این بلوک=375-340=35 → ظرفیت جذب Low (weight=80→کف=160)=300-160=140≥35
     //   → کل از Low جذب می‌شود: high=450 (دست‌نخورده)، low=300-35=265
     //   EA=(2300-600)/64=26.5625 → low → block_reduction_dropped_ea
-    //   fat split: high=51.11, low=(2×2300-(480+1800+460))/9-... = 35.56<51.11
-    //   → low_day_fat_below_high_day (این یک یافته‌ی واقعی محاسبات است، نه خطا)
+    //   fat split خام: high=51.11، low خام=35.56 (زیر highFatG+0.1=51.21)
+    //   → کلامپ فعال می‌شود: low نهایی=51.21، میانگین واقعی از هدف ۷۰.۴۵
+    //   کالری منحرف می‌شود → average_calories_deviated_from_target
+    //   (این یافته‌ی واقعیِ بازبینیِ batch ۴ است — قبلاً low_day_fat_below_high_day
+    //   بدون اصلاح گزارش می‌شد؛ طبق تصمیم صریح تاییدشده، حالا جهت کلامپ
+    //   می‌شود و به‌جایش همین انحراف با عدد دقیق گزارش می‌شود)
     const result = processPeriodizationAndCarbCycle({
       weight_kg: 80,
       training_calories_burned: 600,
@@ -257,10 +274,14 @@ function assert(condition, message) {
     assert(b3.warnings.length === 1 && b3.warnings[0].code === "block_reduction_dropped_ea");
     assertClose(b3.high_day.carb_g, 450, 0.001, "High-Day بلوک ۳ نباید دست بخورد (Low-Day کل کاهش را جذب کرد)");
     assertClose(b3.low_day.carb_g, 265, 0.001);
+    assertClose(b3.high_day.fat_g, 51.1111, 0.001);
+    assertClose(b3.low_day.fat_g, 51.2111, 0.001, "چربی Low-Day باید کلامپ‌شده روی highFatG+0.1 باشد");
+    assert(b3.low_day.fat_g > b3.high_day.fat_g, "جهت سند هرگز نباید نقض شود، حتی بعد از دو بلوک کاهش پیاپی");
     assert(
-      b3.day_warnings.some((w) => w.code === "low_day_fat_below_high_day"),
-      `بلوک ۳ باید low_day_fat_below_high_day داشته باشد، گرفتیم: ${JSON.stringify(b3.day_warnings)}`
+      b3.day_warnings.length === 1 && b3.day_warnings[0].code === "average_calories_deviated_from_target",
+      `بلوک ۳ باید average_calories_deviated_from_target داشته باشد، گرفتیم: ${JSON.stringify(b3.day_warnings)}`
     );
+    assertClose(b3.day_warnings[0].deviation_kcal, 70.45, 0.01, "انحراف واقعی بلوک ۳ باید عدد صریح داشته باشد");
   });
 
   console.log(`\n[test-engine-nutrition-file4-periodization] ${passCount} PASS, ${failCount} FAIL`);
