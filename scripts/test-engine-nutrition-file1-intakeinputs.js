@@ -56,6 +56,10 @@ function assertThrows(fn, messageIncludes, description) {
     MAX_MEALS_COUNT,
     MUSCLE_GAIN_SURPLUS_MIN_KCAL,
     MUSCLE_GAIN_SURPLUS_MAX_KCAL,
+    BLOCK_REDUCTION_MIN_KCAL,
+    BLOCK_REDUCTION_MAX_KCAL,
+    CARB_CYCLING_PERCENT_MIN,
+    CARB_CYCLING_PERCENT_MAX_EXCLUSIVE,
   } = await import("../engine/nutrition/file1_intakeInputs.js");
 
   const validInput = () => ({
@@ -75,6 +79,9 @@ function assertThrows(fn, messageIncludes, description) {
     time_until_next_session_hours: 24,
     allergies: ["nuts"],
     dietary_restrictions: ["lactose_free"],
+    block2_reduction_kcal: 175,
+    block3_reduction_kcal: 180,
+    carb_cycling_percent: 20,
   });
 
   console.log("\n[ورودی معتبر کامل]");
@@ -90,6 +97,9 @@ function assertThrows(fn, messageIncludes, description) {
     assert(result.main_goal === "fat_loss");
     assert(result.budget_tier === "medium");
     assert(result.meals_count_requested === 5);
+    assert(result.block2_reduction_kcal === 175);
+    assert(result.block3_reduction_kcal === 180);
+    assert(result.carb_cycling_percent === 20);
     assert(result.training_time === "18:00");
     assert(result.training_calories_burned === 450);
     assert(result.session_intensity === 8);
@@ -261,6 +271,57 @@ function assertThrows(fn, messageIncludes, description) {
       processIntakeInputs({ ...validInput(), main_goal: "muscle_gain", muscle_gain_surplus_kcal: 500 })
         .muscle_gain_surplus_kcal === 500
     );
+  });
+
+  console.log("\n[block2_reduction_kcal/block3_reduction_kcal — اجباری، بازه‌ی ۱۵۰-۲۰۰، بدون پیش‌فرض حدسی]");
+  check(`MIN/MAX دقیقاً ${BLOCK_REDUCTION_MIN_KCAL} و ${BLOCK_REDUCTION_MAX_KCAL} است`, () => {
+    assert(BLOCK_REDUCTION_MIN_KCAL === 150);
+    assert(BLOCK_REDUCTION_MAX_KCAL === 200);
+  });
+  check("نبودن block2_reduction_kcal رد می‌شود (اجباری، بدون پیش‌فرض)", () => {
+    const input = validInput();
+    delete input.block2_reduction_kcal;
+    assertThrows(() => processIntakeInputs(input), "block2_reduction_kcal نامعتبر");
+  });
+  check("نبودن block3_reduction_kcal رد می‌شود (اجباری، بدون پیش‌فرض)", () => {
+    const input = validInput();
+    delete input.block3_reduction_kcal;
+    assertThrows(() => processIntakeInputs(input), "block3_reduction_kcal نامعتبر");
+  });
+  check("خارج از بازه‌ی ۱۵۰-۲۰۰ رد می‌شود (هر دو فیلد)", () => {
+    assertThrows(() => processIntakeInputs({ ...validInput(), block2_reduction_kcal: 149 }), "block2_reduction_kcal نامعتبر");
+    assertThrows(() => processIntakeInputs({ ...validInput(), block2_reduction_kcal: 201 }), "block2_reduction_kcal نامعتبر");
+    assertThrows(() => processIntakeInputs({ ...validInput(), block3_reduction_kcal: 149 }), "block3_reduction_kcal نامعتبر");
+    assertThrows(() => processIntakeInputs({ ...validInput(), block3_reduction_kcal: 201 }), "block3_reduction_kcal نامعتبر");
+  });
+  check("دقیقاً ۱۵۰ و ۲۰۰ (مرزهای بازه) پذیرفته می‌شوند", () => {
+    assert(processIntakeInputs({ ...validInput(), block2_reduction_kcal: 150 }).block2_reduction_kcal === 150);
+    assert(processIntakeInputs({ ...validInput(), block2_reduction_kcal: 200 }).block2_reduction_kcal === 200);
+    assert(processIntakeInputs({ ...validInput(), block3_reduction_kcal: 150 }).block3_reduction_kcal === 150);
+    assert(processIntakeInputs({ ...validInput(), block3_reduction_kcal: 200 }).block3_reduction_kcal === 200);
+  });
+
+  console.log("\n[carb_cycling_percent — اجباری، بازه‌ی [0,100)، بدون پیش‌فرض حدسی]");
+  check(`MIN دقیقاً ${CARB_CYCLING_PERCENT_MIN} و سقف نامساوی ${CARB_CYCLING_PERCENT_MAX_EXCLUSIVE} است`, () => {
+    assert(CARB_CYCLING_PERCENT_MIN === 0);
+    assert(CARB_CYCLING_PERCENT_MAX_EXCLUSIVE === 100);
+  });
+  check("نبودنش رد می‌شود (اجباری، بدون پیش‌فرض)", () => {
+    const input = validInput();
+    delete input.carb_cycling_percent;
+    assertThrows(() => processIntakeInputs(input), "carb_cycling_percent نامعتبر");
+  });
+  check("۱۰۰ رد می‌شود (سقف نامساوی — در ۱۰۰٪ کربوی Low-Day صفر/منفی می‌شود)", () => {
+    assertThrows(() => processIntakeInputs({ ...validInput(), carb_cycling_percent: 100 }), "carb_cycling_percent نامعتبر");
+  });
+  check("منفی رد می‌شود", () => {
+    assertThrows(() => processIntakeInputs({ ...validInput(), carb_cycling_percent: -5 }), "carb_cycling_percent نامعتبر");
+  });
+  check("صفر پذیرفته می‌شود (یعنی بدون چرخه، High=Low)", () => {
+    assert(processIntakeInputs({ ...validInput(), carb_cycling_percent: 0 }).carb_cycling_percent === 0);
+  });
+  check("۹۹.۹ (نزدیک سقف اما داخل بازه) پذیرفته می‌شود", () => {
+    assert(processIntakeInputs({ ...validInput(), carb_cycling_percent: 99.9 }).carb_cycling_percent === 99.9);
   });
 
   console.log("\n[اعتبارسنجی training_time — بدون بازه‌ی عددی حدسی]");

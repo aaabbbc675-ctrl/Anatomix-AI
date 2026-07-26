@@ -42,6 +42,21 @@ const MAX_MEALS_COUNT = 8;
 const MUSCLE_GAIN_SURPLUS_MIN_KCAL = 300;
 const MUSCLE_GAIN_SURPLUS_MAX_KCAL = 500;
 
+// طبق بخش ۲.۴ سند: هر بلوک (۲ و ۳) کاهش ۱۵۰-۲۰۰ کالری. بازه صریح مستند
+// است، اما نقطه‌ی پیش‌فرض داخل بازه نیست — طبق تصمیم صریح تاییدشده (batch ۴):
+// مربی/شاگرد خودشان از این بازه انتخاب می‌کنند، هم‌الگوی muscle_gain_surplus_kcal.
+const BLOCK_REDUCTION_MIN_KCAL = 150;
+const BLOCK_REDUCTION_MAX_KCAL = 200;
+
+// طبق بخش ۲.۵ سند: سند هیچ نسبت/فرمول عددی برای تقسیم پایه‌ی کربوهیدرات
+// بین High-Day/Low-Day نمی‌دهد (فقط جهت کیفی: «بالاتر»/«پایین‌تر»). طبق
+// تصمیم صریح تاییدشده (batch ۴): پارامتر اجباری از مربی/شاگرد، فقط برای
+// تقسیم پایه‌ی بلوک ۱ (بدون کاهش) استفاده می‌شود. بازه‌ی [0,100) صرفاً یک
+// ضرورت ریاضی است (نه عدد حدسی): در ≥۱۰۰٪، Low-Day carb به صفر یا منفی
+// می‌رسد که بی‌معنی است.
+const CARB_CYCLING_PERCENT_MIN = 0;
+const CARB_CYCLING_PERCENT_MAX_EXCLUSIVE = 100;
+
 function processIntakeInputs(input = {}) {
   const age = Number(input.age);
   if (!Number.isInteger(age) || age <= 0) {
@@ -113,6 +128,41 @@ function processIntakeInputs(input = {}) {
     }
   }
 
+  // طبق بخش ۲.۴ سند و تصمیم صریح تاییدشده (batch ۴): هر دو فیلد اجباری‌اند،
+  // بدون پیش‌فرض داخلی — همیشه لازم‌اند چون هر برنامه‌ی ۱۰ماهه سه بلوک دارد.
+  const block2ReductionKcal = Number(input.block2_reduction_kcal);
+  if (
+    !Number.isFinite(block2ReductionKcal) ||
+    block2ReductionKcal < BLOCK_REDUCTION_MIN_KCAL ||
+    block2ReductionKcal > BLOCK_REDUCTION_MAX_KCAL
+  ) {
+    throw new Error(
+      `block2_reduction_kcal نامعتبر: "${input.block2_reduction_kcal}". باید عددی بین ${BLOCK_REDUCTION_MIN_KCAL} تا ${BLOCK_REDUCTION_MAX_KCAL} باشد.`
+    );
+  }
+  const block3ReductionKcal = Number(input.block3_reduction_kcal);
+  if (
+    !Number.isFinite(block3ReductionKcal) ||
+    block3ReductionKcal < BLOCK_REDUCTION_MIN_KCAL ||
+    block3ReductionKcal > BLOCK_REDUCTION_MAX_KCAL
+  ) {
+    throw new Error(
+      `block3_reduction_kcal نامعتبر: "${input.block3_reduction_kcal}". باید عددی بین ${BLOCK_REDUCTION_MIN_KCAL} تا ${BLOCK_REDUCTION_MAX_KCAL} باشد.`
+    );
+  }
+
+  // طبق بخش ۲.۵ سند و تصمیم صریح تاییدشده (batch ۴).
+  const carbCyclingPercent = Number(input.carb_cycling_percent);
+  if (
+    !Number.isFinite(carbCyclingPercent) ||
+    carbCyclingPercent < CARB_CYCLING_PERCENT_MIN ||
+    carbCyclingPercent >= CARB_CYCLING_PERCENT_MAX_EXCLUSIVE
+  ) {
+    throw new Error(
+      `carb_cycling_percent نامعتبر: "${input.carb_cycling_percent}". باید عددی بین ${CARB_CYCLING_PERCENT_MIN} تا کمتر از ${CARB_CYCLING_PERCENT_MAX_EXCLUSIVE} باشد.`
+    );
+  }
+
   if (!VALID_BUDGET_TIERS.includes(input.budget_tier)) {
     throw new Error(`budget_tier نامعتبر: "${input.budget_tier}". مقادیر مجاز: ${VALID_BUDGET_TIERS.join(", ")}`);
   }
@@ -169,6 +219,9 @@ function processIntakeInputs(input = {}) {
     sport_type: input.sport_type,
     main_goal: input.main_goal,
     muscle_gain_surplus_kcal: muscleGainSurplusKcal,
+    block2_reduction_kcal: block2ReductionKcal,
+    block3_reduction_kcal: block3ReductionKcal,
+    carb_cycling_percent: carbCyclingPercent,
     budget_tier: input.budget_tier,
     meals_count_requested: mealsCountRequested,
     training_time: input.training_time,
@@ -192,4 +245,8 @@ export {
   MAX_MEALS_COUNT,
   MUSCLE_GAIN_SURPLUS_MIN_KCAL,
   MUSCLE_GAIN_SURPLUS_MAX_KCAL,
+  BLOCK_REDUCTION_MIN_KCAL,
+  BLOCK_REDUCTION_MAX_KCAL,
+  CARB_CYCLING_PERCENT_MIN,
+  CARB_CYCLING_PERCENT_MAX_EXCLUSIVE,
 };
