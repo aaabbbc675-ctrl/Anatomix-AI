@@ -37,6 +37,7 @@ function assert(condition, message) {
     computeBaselineHighLowCarbSplit,
     computeReducedHighLowCarbSplit,
     deriveHighLowFatFromCarbSplit,
+    SEVERE_DEVIATION_THRESHOLD_PERCENT,
   } = await import("../engine/nutrition/file4_periodizationAndCarbCycle.js");
   const { computeEnergyAvailability } = await import("../engine/nutrition/file2_energyTargets.js");
 
@@ -163,11 +164,16 @@ function assert(condition, message) {
     assert(result.low_fat_g > result.high_fat_g, "جهت سند: Low-Day باید چربی بیشتری داشته باشد");
     assert(result.warnings.length === 0);
   });
-  check("چربی خام Low-Day منفی می‌شود → کلامپ فعال + target_calories_unrealistic + average_calories_deviated_from_target (هر دو، سناریوی مصنوعی حدی)", () => {
+  check(`SEVERE_DEVIATION_THRESHOLD_PERCENT دقیقاً ${SEVERE_DEVIATION_THRESHOLD_PERCENT} است`, () => {
+    assert(SEVERE_DEVIATION_THRESHOLD_PERCENT === 10);
+  });
+
+  check("چربی خام Low-Day منفی می‌شود → کلامپ + ۳ هشدار: target_calories_unrealistic + average_calories_deviated_from_target + average_calories_severely_deviated (۱۵.۵۷٪>۱۰٪، سناریوی مصنوعی حدی)", () => {
     // خام: rawLowFatG=-33.33 (منفی). کلامپ: lowFatG=60.1 (highFatG+0.1).
-    // انحراف میانگین واقعی از هدف: ۴۲۰.۴۵ کالری — عمداً خیلی بزرگ‌تر از
-    // سناریوی واقعی بلوک ۳ (۷۰.۴۵)، تا نشان دهد اندازه‌ی انحراف نامحدود
-    // است و باید عدد واقعی همیشه دیده شود، نه فقط یک پرچم بدون بزرگی.
+    // انحراف میانگین واقعی از هدف: ۴۲۰.۴۵ کالری روی target=2700 → ۱۵.۵۷٪
+    // (فراتر از آستانه‌ی ۱۰٪) — عمداً خیلی بزرگ‌تر از سناریوی واقعی بلوک ۳
+    // (۳.۰۶٪)، تا نشان دهد اندازه‌ی انحراف نامحدود است و هشدار شدت دوم واقعاً
+    // لازم است، نه فقط یک پرچم بدون بزرگی.
     const result = deriveHighLowFatFromCarbSplit({
       protein_g: 120,
       high_carb_g: 1000,
@@ -178,16 +184,20 @@ function assert(condition, message) {
     assertClose(result.high_fat_g, 60, 0.001);
     assertClose(result.low_fat_g, 60.1, 0.001, "چربی خام منفی بود، باید به highFatG+0.1 کلامپ شده باشد");
     assert(result.low_fat_g > result.high_fat_g, "جهت هرگز نباید نقض شود، حتی در حالت حدی");
-    assert(result.warnings.length === 2, `انتظار دو هشدار داشتیم (منفی بودن + انحراف کلامپ)، گرفتیم: ${JSON.stringify(result.warnings)}`);
+    assert(result.warnings.length === 3, `انتظار سه هشدار داشتیم، گرفتیم: ${JSON.stringify(result.warnings)}`);
     assert(result.warnings.some((w) => w.code === "target_calories_unrealistic"));
     const deviationWarning = result.warnings.find((w) => w.code === "average_calories_deviated_from_target");
     assert(deviationWarning, "باید average_calories_deviated_from_target هم صادر شده باشد");
-    assert(deviationWarning.severity === "caution");
     assertClose(deviationWarning.deviation_kcal, 420.45, 0.01, "انحراف واقعی باید عدد صریح داشته باشد، نه پنهان بماند");
+    const severeWarning = result.warnings.find((w) => w.code === "average_calories_severely_deviated");
+    assert(severeWarning, "انحراف ۱۵.۵۷٪ باید از آستانه‌ی ۱۰٪ فراتر رفته و هشدار شدید صادر کرده باشد");
+    assert(severeWarning.severity === "caution");
+    assertClose(severeWarning.deviation_kcal, 420.45, 0.01);
   });
-  check("چربی خام Low-Day مثبت اما زیر کف‌فاصله از High-Day → فقط کلامپ + average_calories_deviated_from_target (بدون target_calories_unrealistic)", () => {
+  check("چربی خام Low-Day مثبت اما زیر کف‌فاصله از High-Day → کلامپ + فقط average_calories_deviated_from_target (۴.۴۶٪<۱۰٪، بدون severely_deviated و بدون target_calories_unrealistic)", () => {
     // خام: rawLowFatG=33.33 (مثبت، اما ≤ highFatG+0.1=60.1). کلامپ فعال
-    // می‌شود اما چون خام منفی نبود، target_calories_unrealistic نباید بیاید.
+    // می‌شود اما چون خام منفی نبود، target_calories_unrealistic نمی‌آید؛
+    // انحراف=120.45/2700=۴.۴۶٪ زیر آستانه است، پس severely_deviated هم نمی‌آید.
     const result = deriveHighLowFatFromCarbSplit({
       protein_g: 120,
       high_carb_g: 600,

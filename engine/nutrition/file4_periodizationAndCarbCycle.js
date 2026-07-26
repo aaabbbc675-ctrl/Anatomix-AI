@@ -18,6 +18,13 @@ import { computeGenericFatFloorG, computeEnergyAvailability, CARB_FLOOR_G_PER_KG
 // علامت‌گذاری بدون اصلاح.
 const MIN_LOW_HIGH_FAT_MARGIN_G = 0.1;
 
+// طبق تصمیم صریح تاییدشده (بازبینی batch ۴، دور دوم): این عدد یک آستانه‌ی
+// هشداردهی/UX است، نه یک ثابت مستند به ادبیات علمی (برخلاف ۰.۵٪/هفته یا کف
+// ۲۰٪ چربی که هر دو مستقیماً از سند می‌آیند) — پس آزادانه قابل تغییر است.
+// هدف فقط تفکیک «انحراف ناچیز» از «انحرافی که عملاً طراحی بلوک را زیر سوال
+// می‌برد»، بدون اختراع سطح سوم severity (سند فقط info/caution دارد، بخش ۳.۲).
+const SEVERE_DEVIATION_THRESHOLD_PERCENT = 10;
+
 // --- لایه‌ی ۱: دوره‌بندی بلوکی (بخش ۲.۴) ---
 //
 // خوانش من از «چربی فقط تا کف ۲۰٪ کالری — پس از رسیدن به کف چربی، کاهش فقط
@@ -115,12 +122,28 @@ function deriveHighLowFatFromCarbSplit({ protein_g, high_carb_g, low_carb_g, tar
     const actualHighDayCalories = protein_g * 4 + high_carb_g * 4 + highFatG * 9;
     const actualLowDayCalories = protein_g * 4 + low_carb_g * 4 + lowFatG * 9;
     const actualAverageCalories = (actualHighDayCalories + actualLowDayCalories) / 2;
+    const deviationKcal = actualAverageCalories - target_calories;
     warnings.push({
       code: "average_calories_deviated_from_target",
       severity: "caution",
       coach_note: null,
-      deviation_kcal: actualAverageCalories - target_calories,
+      deviation_kcal: deviationKcal,
     });
+
+    // طبق تصمیم صریح تاییدشده (دور دوم بازبینی batch ۴): هشدار دوم و مجزا،
+    // در کنار هشدار اول (نه به‌جایش)، وقتی انحراف از یک نسبت معنادار
+    // (SEVERE_DEVIATION_THRESHOLD_PERCENT) فراتر رود — تا داشبورد مربی
+    // بتواند بدون پردازش عددی خودش، ۷۰ کالری بی‌اهمیت را از ۴۰۰+ کالری
+    // که کل طراحی بلوک را زیر سوال می‌برد جدا کند.
+    const deviationPercentOfTarget = (Math.abs(deviationKcal) / target_calories) * 100;
+    if (deviationPercentOfTarget > SEVERE_DEVIATION_THRESHOLD_PERCENT) {
+      warnings.push({
+        code: "average_calories_severely_deviated",
+        severity: "caution",
+        coach_note: null,
+        deviation_kcal: deviationKcal,
+      });
+    }
   }
 
   return { high_fat_g: highFatG, low_fat_g: lowFatG, warnings };
@@ -240,4 +263,5 @@ export {
   computeBaselineHighLowCarbSplit,
   computeReducedHighLowCarbSplit,
   deriveHighLowFatFromCarbSplit,
+  SEVERE_DEVIATION_THRESHOLD_PERCENT,
 };
