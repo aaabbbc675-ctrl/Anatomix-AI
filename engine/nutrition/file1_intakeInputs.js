@@ -174,6 +174,34 @@ function processIntakeInputs(input = {}) {
     );
   }
 
+  // طبق بخش ۲.۳ سند و تصمیم صریح تاییدشده (batch ۵): چون هیچ ورودی ساعت
+  // بیداری/شروع روز نداریم، «قبل تمرین»/«بعد تمرین» با محاسبه‌ی ساعت واقعی
+  // ممکن نیست — مربی/شاگرد مستقیماً شماره‌ی وعده را برچسب می‌زنند. قاعده‌ی
+  // ترتیبی (نه عدد حدسی، فقط منطق ساختاری): وعده‌ی بعد تمرین باید شماره‌ای
+  // بزرگ‌تر از وعده‌ی قبل تمرین داشته باشد — این خودش تضمین می‌کند وعده‌ی
+  // قبل‌تمرین هرگز آخرین وعده نباشد.
+  const preWorkoutMealIndex = Number(input.pre_workout_meal_index);
+  if (!Number.isInteger(preWorkoutMealIndex) || preWorkoutMealIndex < 1 || preWorkoutMealIndex > mealsCountRequested) {
+    throw new Error(
+      `pre_workout_meal_index نامعتبر: "${input.pre_workout_meal_index}". باید عدد صحیح بین ۱ تا ${mealsCountRequested} (meals_count_requested) باشد.`
+    );
+  }
+  const postWorkoutMealIndex = Number(input.post_workout_meal_index);
+  if (
+    !Number.isInteger(postWorkoutMealIndex) ||
+    postWorkoutMealIndex < 1 ||
+    postWorkoutMealIndex > mealsCountRequested
+  ) {
+    throw new Error(
+      `post_workout_meal_index نامعتبر: "${input.post_workout_meal_index}". باید عدد صحیح بین ۱ تا ${mealsCountRequested} (meals_count_requested) باشد.`
+    );
+  }
+  if (postWorkoutMealIndex <= preWorkoutMealIndex) {
+    throw new Error(
+      `post_workout_meal_index (${postWorkoutMealIndex}) باید بزرگ‌تر از pre_workout_meal_index (${preWorkoutMealIndex}) باشد — وعده‌ی بعد تمرین ساختاراً بعد از وعده‌ی قبل تمرین می‌آید.`
+    );
+  }
+
   // طبق بخش ۲.۳ سند: RPE عددی، هم‌الگوی computeMonthlyIntensityAdjustment
   // در engine/corrective/monthlyFeedbackProcessor.js — نه enum سبک/متوسط/سنگین
   // (تصمیم صریح تاییدشده، برای هم‌قراردادی بین دو موتور).
@@ -224,6 +252,8 @@ function processIntakeInputs(input = {}) {
     carb_cycling_percent: carbCyclingPercent,
     budget_tier: input.budget_tier,
     meals_count_requested: mealsCountRequested,
+    pre_workout_meal_index: preWorkoutMealIndex,
+    post_workout_meal_index: postWorkoutMealIndex,
     training_time: input.training_time,
     training_calories_burned: trainingCaloriesBurned,
     session_intensity: sessionIntensity,

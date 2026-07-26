@@ -73,6 +73,8 @@ function assertThrows(fn, messageIncludes, description) {
     main_goal: "fat_loss",
     budget_tier: "medium",
     meals_count_requested: 5,
+    pre_workout_meal_index: 2,
+    post_workout_meal_index: 3,
     training_time: "18:00",
     training_calories_burned: 450,
     session_intensity: 8,
@@ -97,6 +99,8 @@ function assertThrows(fn, messageIncludes, description) {
     assert(result.main_goal === "fat_loss");
     assert(result.budget_tier === "medium");
     assert(result.meals_count_requested === 5);
+    assert(result.pre_workout_meal_index === 2);
+    assert(result.post_workout_meal_index === 3);
     assert(result.block2_reduction_kcal === 175);
     assert(result.block3_reduction_kcal === 180);
     assert(result.carb_cycling_percent === 20);
@@ -322,6 +326,51 @@ function assertThrows(fn, messageIncludes, description) {
   });
   check("۹۹.۹ (نزدیک سقف اما داخل بازه) پذیرفته می‌شود", () => {
     assert(processIntakeInputs({ ...validInput(), carb_cycling_percent: 99.9 }).carb_cycling_percent === 99.9);
+  });
+
+  console.log("\n[pre_workout_meal_index/post_workout_meal_index — برچسب‌گذاری مربی، بدون محاسبه‌ی ساعت]");
+  check("pre_workout_meal_index خارج از بازه‌ی ۱ تا meals_count_requested رد می‌شود", () => {
+    assertThrows(
+      () => processIntakeInputs({ ...validInput(), pre_workout_meal_index: 0 }),
+      "pre_workout_meal_index نامعتبر"
+    );
+    assertThrows(
+      () => processIntakeInputs({ ...validInput(), meals_count_requested: 5, pre_workout_meal_index: 6 }),
+      "pre_workout_meal_index نامعتبر"
+    );
+  });
+  check("post_workout_meal_index خارج از بازه‌ی ۱ تا meals_count_requested رد می‌شود", () => {
+    assertThrows(
+      () => processIntakeInputs({ ...validInput(), post_workout_meal_index: 0 }),
+      "post_workout_meal_index نامعتبر"
+    );
+    assertThrows(
+      () => processIntakeInputs({ ...validInput(), meals_count_requested: 5, post_workout_meal_index: 6 }),
+      "post_workout_meal_index نامعتبر"
+    );
+  });
+  check("post_workout_meal_index مساوی یا کوچک‌تر از pre_workout_meal_index رد می‌شود", () => {
+    assertThrows(
+      () => processIntakeInputs({ ...validInput(), pre_workout_meal_index: 3, post_workout_meal_index: 3 }),
+      "باید بزرگ‌تر از pre_workout_meal_index"
+    );
+    assertThrows(
+      () => processIntakeInputs({ ...validInput(), pre_workout_meal_index: 3, post_workout_meal_index: 2 }),
+      "باید بزرگ‌تر از pre_workout_meal_index"
+    );
+  });
+  check("post_workout_meal_index دقیقاً یکی بزرگ‌تر (مجاور) پذیرفته می‌شود", () => {
+    const result = processIntakeInputs({ ...validInput(), pre_workout_meal_index: 2, post_workout_meal_index: 3 });
+    assert(result.pre_workout_meal_index === 2 && result.post_workout_meal_index === 3);
+  });
+  check("post_workout_meal_index می‌تواند دقیقاً برابر meals_count_requested باشد (هم‌پوشانی با قبل‌خواب — مسئولیت file5)", () => {
+    const result = processIntakeInputs({
+      ...validInput(),
+      meals_count_requested: 4,
+      pre_workout_meal_index: 2,
+      post_workout_meal_index: 4,
+    });
+    assert(result.post_workout_meal_index === 4);
   });
 
   console.log("\n[اعتبارسنجی training_time — بدون بازه‌ی عددی حدسی]");
