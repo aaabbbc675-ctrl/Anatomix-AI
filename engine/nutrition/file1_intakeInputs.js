@@ -34,6 +34,14 @@ const VALID_DIETARY_RESTRICTIONS = ["vegan", "vegetarian", "gluten_free", "lacto
 const MIN_MEALS_COUNT = 3;
 const MAX_MEALS_COUNT = 8;
 
+// طبق بخش ۲.۱-ج سند: افزایش وزن = TDEE + ۳۰۰ تا ۵۰۰. برخلاف fat_loss (که
+// سند صریح ۰.۵٪ را با دلیل «بیشینه حفظ عضله» پیش‌فرض گذاشته)، برای این بازه
+// هیچ نقطه‌ی پیش‌فرضی در سند نیامده — طبق تصمیم صریح تاییدشده، موتور یک عدد
+// حدسی وسط بازه نمی‌سازد؛ مربی/شاگرد خودشان عدد را از این بازه انتخاب
+// می‌کنند (اجباری، فقط وقتی main_goal=muscle_gain باشد).
+const MUSCLE_GAIN_SURPLUS_MIN_KCAL = 300;
+const MUSCLE_GAIN_SURPLUS_MAX_KCAL = 500;
+
 function processIntakeInputs(input = {}) {
   const age = Number(input.age);
   if (!Number.isInteger(age) || age <= 0) {
@@ -87,6 +95,22 @@ function processIntakeInputs(input = {}) {
 
   if (!VALID_MAIN_GOALS.includes(input.main_goal)) {
     throw new Error(`main_goal نامعتبر: "${input.main_goal}". مقادیر مجاز: ${VALID_MAIN_GOALS.join(", ")}`);
+  }
+
+  // فقط برای muscle_gain اجباری است (طبق تصمیم صریح تاییدشده بالا) — برای
+  // fat_loss/maintenance این فیلد بی‌ربط است و اعتبارسنجی نمی‌شود.
+  let muscleGainSurplusKcal = null;
+  if (input.main_goal === "muscle_gain") {
+    muscleGainSurplusKcal = Number(input.muscle_gain_surplus_kcal);
+    if (
+      !Number.isFinite(muscleGainSurplusKcal) ||
+      muscleGainSurplusKcal < MUSCLE_GAIN_SURPLUS_MIN_KCAL ||
+      muscleGainSurplusKcal > MUSCLE_GAIN_SURPLUS_MAX_KCAL
+    ) {
+      throw new Error(
+        `muscle_gain_surplus_kcal نامعتبر: "${input.muscle_gain_surplus_kcal}". برای main_goal=muscle_gain باید عددی بین ${MUSCLE_GAIN_SURPLUS_MIN_KCAL} تا ${MUSCLE_GAIN_SURPLUS_MAX_KCAL} باشد.`
+      );
+    }
   }
 
   if (!VALID_BUDGET_TIERS.includes(input.budget_tier)) {
@@ -144,6 +168,7 @@ function processIntakeInputs(input = {}) {
     activity_level: input.activity_level,
     sport_type: input.sport_type,
     main_goal: input.main_goal,
+    muscle_gain_surplus_kcal: muscleGainSurplusKcal,
     budget_tier: input.budget_tier,
     meals_count_requested: mealsCountRequested,
     training_time: input.training_time,
@@ -165,4 +190,6 @@ export {
   VALID_DIETARY_RESTRICTIONS,
   MIN_MEALS_COUNT,
   MAX_MEALS_COUNT,
+  MUSCLE_GAIN_SURPLUS_MIN_KCAL,
+  MUSCLE_GAIN_SURPLUS_MAX_KCAL,
 };

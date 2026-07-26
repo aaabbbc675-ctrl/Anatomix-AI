@@ -54,6 +54,8 @@ function assertThrows(fn, messageIncludes, description) {
     VALID_DIETARY_RESTRICTIONS,
     MIN_MEALS_COUNT,
     MAX_MEALS_COUNT,
+    MUSCLE_GAIN_SURPLUS_MIN_KCAL,
+    MUSCLE_GAIN_SURPLUS_MAX_KCAL,
   } = await import("../engine/nutrition/file1_intakeInputs.js");
 
   const validInput = () => ({
@@ -218,6 +220,47 @@ function assertThrows(fn, messageIncludes, description) {
   });
   check("training_calories_burned صفر پذیرفته می‌شود", () => {
     assert(processIntakeInputs({ ...validInput(), training_calories_burned: 0 }).training_calories_burned === 0);
+  });
+
+  console.log("\n[muscle_gain_surplus_kcal — اجباری فقط برای muscle_gain، بدون پیش‌فرض حدسی]");
+  check(`MIN/MAX دقیقاً ${MUSCLE_GAIN_SURPLUS_MIN_KCAL} و ${MUSCLE_GAIN_SURPLUS_MAX_KCAL} است`, () => {
+    assert(MUSCLE_GAIN_SURPLUS_MIN_KCAL === 300);
+    assert(MUSCLE_GAIN_SURPLUS_MAX_KCAL === 500);
+  });
+  check("برای fat_loss/maintenance اجباری نیست و به null می‌افتد", () => {
+    const result = processIntakeInputs(validInput());
+    assert(result.main_goal === "fat_loss");
+    assert(result.muscle_gain_surplus_kcal === null);
+  });
+  check("برای muscle_gain نبودنش رد می‌شود (بدون پیش‌فرض حدسی وسط بازه)", () => {
+    assertThrows(
+      () => processIntakeInputs({ ...validInput(), main_goal: "muscle_gain" }),
+      "muscle_gain_surplus_kcal نامعتبر"
+    );
+  });
+  check("برای muscle_gain خارج از بازه‌ی ۳۰۰-۵۰۰ رد می‌شود", () => {
+    assertThrows(
+      () => processIntakeInputs({ ...validInput(), main_goal: "muscle_gain", muscle_gain_surplus_kcal: 600 }),
+      "muscle_gain_surplus_kcal نامعتبر"
+    );
+    assertThrows(
+      () => processIntakeInputs({ ...validInput(), main_goal: "muscle_gain", muscle_gain_surplus_kcal: 250 }),
+      "muscle_gain_surplus_kcal نامعتبر"
+    );
+  });
+  check("برای muscle_gain مقدار معتبر داخل بازه پذیرفته و round-trip می‌شود", () => {
+    const result = processIntakeInputs({ ...validInput(), main_goal: "muscle_gain", muscle_gain_surplus_kcal: 350 });
+    assert(result.muscle_gain_surplus_kcal === 350);
+  });
+  check("دقیقاً ۳۰۰ و ۵۰۰ (مرزهای بازه) برای muscle_gain پذیرفته می‌شوند", () => {
+    assert(
+      processIntakeInputs({ ...validInput(), main_goal: "muscle_gain", muscle_gain_surplus_kcal: 300 })
+        .muscle_gain_surplus_kcal === 300
+    );
+    assert(
+      processIntakeInputs({ ...validInput(), main_goal: "muscle_gain", muscle_gain_surplus_kcal: 500 })
+        .muscle_gain_surplus_kcal === 500
+    );
   });
 
   console.log("\n[اعتبارسنجی training_time — بدون بازه‌ی عددی حدسی]");
