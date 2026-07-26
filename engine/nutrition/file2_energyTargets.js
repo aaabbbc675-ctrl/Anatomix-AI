@@ -103,11 +103,17 @@ function computeEnergyAvailability({ target_calories, training_calories_burned, 
   };
 }
 
+// کف چربی عمومی (بخش ۱.۲) — تابع مستقل تا فایل ۳ (ماتریس ماکرو رشته‌ای)
+// دقیقاً همین را بازاستفاده کند، نه اینکه فرمول را دوباره بنویسد.
+function computeGenericFatFloorG({ target_calories, weight_kg }) {
+  return Math.max(FAT_FLOOR_G_PER_KG * weight_kg, (FAT_FLOOR_PERCENT_OF_CALORIES * target_calories) / 9);
+}
+
 // بخش ۱.۲: کف‌های پیش‌فرض ماکرو — پروتئین ثابت → چربی تا کف ۲۰٪ کالری →
 // کربوهیدرات باقی‌مانده.
 function computeDefaultMacroFloors({ target_calories, weight_kg }) {
   const proteinG = PROTEIN_FLOOR_G_PER_KG * weight_kg;
-  const fatG = Math.max(FAT_FLOOR_G_PER_KG * weight_kg, (FAT_FLOOR_PERCENT_OF_CALORIES * target_calories) / 9);
+  const fatG = computeGenericFatFloorG({ target_calories, weight_kg });
   const carbG = (target_calories - proteinG * 4 - fatG * 9) / 4;
 
   const warnings = [];
@@ -167,6 +173,7 @@ export {
   computeTargetCalories,
   computeEnergyAvailability,
   computeDefaultMacroFloors,
+  computeGenericFatFloorG,
   ACTIVITY_MULTIPLIERS,
   DEFAULT_FAT_LOSS_RATE_PERCENT,
   KCAL_PER_KG_BODYWEIGHT,
