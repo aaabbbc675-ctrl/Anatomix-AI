@@ -68,6 +68,7 @@ function assertThrows(fn, messageIncludes, description) {
     budget_tier: "medium",
     meals_count_requested: 5,
     training_time: "18:00",
+    training_calories_burned: 450,
     session_intensity: 8,
     time_until_next_session_hours: 24,
     allergies: ["nuts"],
@@ -88,6 +89,7 @@ function assertThrows(fn, messageIncludes, description) {
     assert(result.budget_tier === "medium");
     assert(result.meals_count_requested === 5);
     assert(result.training_time === "18:00");
+    assert(result.training_calories_burned === 450);
     assert(result.session_intensity === 8);
     assert(result.time_until_next_session_hours === 24);
     assertDeepEqual(result.allergies, ["nuts"]);
@@ -195,6 +197,27 @@ function assertThrows(fn, messageIncludes, description) {
   });
   check("صفر پذیرفته می‌شود (یعنی همین الان جلسه‌ی بعدی است)", () => {
     assert(processIntakeInputs({ ...validInput(), time_until_next_session_hours: 0 }).time_until_next_session_hours === 0);
+  });
+
+  console.log("\n[training_calories_burned — nullable عمدی، هم‌الگوی body_fat_percent]");
+  check("نبودن training_calories_burned کرش نمی‌کند، به null می‌افتد (EA بعداً «محاسبه نشد» می‌شود)", () => {
+    const input = validInput();
+    delete input.training_calories_burned;
+    const result = processIntakeInputs(input);
+    assert(result.training_calories_burned === null);
+  });
+  check("training_calories_burned صریحاً null هم پذیرفته می‌شود", () => {
+    const result = processIntakeInputs({ ...validInput(), training_calories_burned: null });
+    assert(result.training_calories_burned === null);
+  });
+  check("training_calories_burned منفی رد می‌شود", () => {
+    assertThrows(
+      () => processIntakeInputs({ ...validInput(), training_calories_burned: -10 }),
+      "training_calories_burned نامعتبر"
+    );
+  });
+  check("training_calories_burned صفر پذیرفته می‌شود", () => {
+    assert(processIntakeInputs({ ...validInput(), training_calories_burned: 0 }).training_calories_burned === 0);
   });
 
   console.log("\n[اعتبارسنجی training_time — بدون بازه‌ی عددی حدسی]");

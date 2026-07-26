@@ -64,6 +64,19 @@ function processIntakeInputs(input = {}) {
     }
   }
 
+  // طبق تصمیم صریح تاییدشده (پیش از batch ۲): گیت EA بخش ۱.۱ به «کالری سوخته
+  // در تمرین» نیاز دارد که جدا از ضریب TDEE است و در سند برای‌اش منبعی معین
+  // نشده بود. راه‌حل تاییدشده: فیلد ورودی دستی nullable، هم‌الگوی
+  // body_fat_percent — نبودنش یعنی EA بعداً صادقانه «محاسبه نشد» می‌شود، نه
+  // اینکه با تخمین MET حدسی جایگزین شود.
+  let trainingCaloriesBurned = null;
+  if (input.training_calories_burned !== null && input.training_calories_burned !== undefined) {
+    trainingCaloriesBurned = Number(input.training_calories_burned);
+    if (!(trainingCaloriesBurned >= 0)) {
+      throw new Error(`training_calories_burned نامعتبر: "${input.training_calories_burned}". باید عدد ≥۰ باشد یا خالی/null بماند.`);
+    }
+  }
+
   if (!VALID_ACTIVITY_LEVELS.includes(input.activity_level)) {
     throw new Error(`activity_level نامعتبر: "${input.activity_level}". مقادیر مجاز: ${VALID_ACTIVITY_LEVELS.join(", ")}`);
   }
@@ -134,6 +147,7 @@ function processIntakeInputs(input = {}) {
     budget_tier: input.budget_tier,
     meals_count_requested: mealsCountRequested,
     training_time: input.training_time,
+    training_calories_burned: trainingCaloriesBurned,
     session_intensity: sessionIntensity,
     time_until_next_session_hours: timeUntilNextSessionHours,
     allergies: allergiesInput,
