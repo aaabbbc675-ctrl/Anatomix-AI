@@ -213,6 +213,10 @@ function assert(condition, message) {
 
   console.log("\n[processEnergyTargets — یکپارچه]");
   check("سناریوی کامل fat_loss با body_fat_percent (EA=low) — همه‌ی فیلدها یک‌جا درست", () => {
+    // weight=80,bfp=20 → ffm=64, bmr=370+21.6×64=1752.4
+    // tdee (sedentary=1.2): 1752.4×1.2=2102.88
+    // کسری fat_loss: (0.5/100)×80×7700/7=440 → target=2102.88-440=1662.88
+    // EA: (1662.88-300)/64=21.295 → همچنان زیر ۳۰ (low)
     const intake = {
       sex: "male",
       age: 30,
@@ -220,7 +224,7 @@ function assert(condition, message) {
       height_cm: 175,
       body_fat_percent: 20,
       activity_level: "sedentary",
-      main_goal: "maintenance",
+      main_goal: "fat_loss",
       muscle_gain_surplus_kcal: null,
       training_calories_burned: 300,
     };
@@ -229,8 +233,8 @@ function assert(condition, message) {
     assert(result.bmr_formula_used === "katch_mcardle");
     assertClose(result.ffm_kg, 64, 0.001);
     assertClose(result.tdee, 2102.88, 0.001);
-    assertClose(result.target_calories, 2102.88, 0.001, "maintenance باید دقیقاً TDEE باشد");
-    assertClose(result.energy_availability_kcal_per_kg_ffm, 28.17, 0.01);
+    assertClose(result.target_calories, 1662.88, 0.001, "fat_loss باید TDEE منهای ۴۴۰ کسری روزانه باشد");
+    assertClose(result.energy_availability_kcal_per_kg_ffm, 21.295, 0.01);
     assert(result.ea_status === "low");
     assert(result.warnings.some((w) => w.code === "ea_low"));
   });
