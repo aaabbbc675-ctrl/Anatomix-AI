@@ -4,7 +4,7 @@ const PROGRAM_TYPES = [
   { id: "bodybuilding", label: "بدنسازی", enabled: true },
   { id: "corrective", label: "حرکات اصلاحی", enabled: true },
   { id: "hybrid_sc", label: "هیبرید آمادگی جسمانی", enabled: false },
-  { id: "diet", label: "برنامه غذایی", enabled: false },
+  { id: "diet", label: "برنامه غذایی", enabled: true },
   { id: "home_workout", label: "تمرین در منزل", enabled: false },
 ];
 

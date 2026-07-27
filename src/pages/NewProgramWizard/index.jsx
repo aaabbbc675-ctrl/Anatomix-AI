@@ -7,12 +7,14 @@ import CorrectiveStageOneGate from "./CorrectiveStageOneGate";
 import CorrectiveStageTwoGate from "./CorrectiveStageTwoGate";
 import StageOneGate from "./StageOneGate";
 import StageTwoGate from "./StageTwoGate";
+import NutritionAssessmentForm from "./NutritionAssessmentForm";
 
 // طبق بخش ۲.۳ سند: «+ برنامه جدید» همیشه یعنی شروع سیکل تازه (Stage=1) با seed
 // از آخرین coachOverrides شاگرد — هرگز خروجی منجمد قدیمی به‌عنوان نتیجه‌ی فعلی
 // نمایش داده نمی‌شود؛ موتور همیشه دوباره روی مقادیر (قابل‌ویرایش) اجرا می‌شود.
 export default function NewProgramWizard({ studentId, onDone, onCancel }) {
   // type | assessment | stage1 | stage2 (بدنسازی) | correctiveAssessment | correctiveStage1 | correctiveStage2 (اصلاحی)
+  // | nutritionAssessment | nutritionStage1 | nutritionStage2 (تغذیه — Stage1/Stage2 در زیرکامیت‌های بعدی batch ۶-د اضافه می‌شوند)
   const [step, setStep] = useState("type");
   const [initialAssessment, setInitialAssessment] = useState(null);
   const [assessment, setAssessment] = useState(null);
@@ -38,6 +40,7 @@ export default function NewProgramWizard({ studentId, onDone, onCancel }) {
         onSelect={(type) => {
           if (type === "bodybuilding") setStep("assessment");
           else if (type === "corrective") setStep("correctiveAssessment");
+          else if (type === "diet") setStep("nutritionAssessment");
         }}
       />
     );
@@ -90,6 +93,20 @@ export default function NewProgramWizard({ studentId, onDone, onCancel }) {
         cascadeResult={cascadeResult}
         onBack={() => setStep("correctiveStage1")}
         onSave={(program) => onDone(program)}
+      />
+    );
+  }
+
+  if (step === "nutritionAssessment") {
+    return (
+      <NutritionAssessmentForm
+        onCancel={onCancel}
+        onSubmit={(values) => {
+          setAssessment(values);
+          // زیرکامیت بعدی (۶-د-۲) بلوک step==="nutritionStage1" را اضافه
+          // می‌کند (NutritionStageOneGate) — تا آن‌جا این حالت خالی می‌ماند.
+          setStep("nutritionStage1");
+        }}
       />
     );
   }
