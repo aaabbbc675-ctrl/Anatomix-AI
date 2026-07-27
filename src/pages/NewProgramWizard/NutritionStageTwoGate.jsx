@@ -57,21 +57,23 @@ function round1(n) {
   return Math.round(n * 10) / 10;
 }
 
-// رنگ‌بندی کل‌روز در برابر approved_macros — «هم‌روحیه با EA» یعنی الگوی
-// سه‌رنگ، نه عین همان آستانه‌های EA (که kcal/kg FFM هستند، بی‌ربط به درصد
-// انحراف ماکرو). آستانه‌ی قرمز = SEVERE_DEVIATION_THRESHOLD_PERCENT (۱۰٪)،
-// همان ثابت تاییدشده‌ی فایل۴ (بازاستفاده، نه عدد تازه). آستانه‌ی زرد/سبز
-// (نصفِ همان، ۵٪) یک تصمیم UX محض من است، مستند سند نیست — قابل تغییر با
-// نظر شما.
-const GREEN_MAX_DEVIATION_PERCENT = SEVERE_DEVIATION_THRESHOLD_PERCENT / 2;
-const DEVIATION_COLORS = { green: "#2e7d32", yellow: "#e0a800", red: "#c0392b" };
+// رنگ‌بندی کل‌روز در برابر approved_macros — دو رنگ، نه سه. نسخه‌ی قبلی این
+// تیکه یک آستانه‌ی سوم (۵٪، نصفِ SEVERE_DEVIATION_THRESHOLD_PERCENT) داشت که
+// هیچ منبعی نداشت — دقیقاً همان نوع عدد حدسی که همیشه رد کرده‌ایم؛ حذف شد.
+// آستانه‌ی باقی‌مانده (۱۰٪) عدد تازه‌ای نیست، دو منبع مستقل دارد که هر دو از
+// قبل تاییدشده‌اند:
+//   ۱) SEVERE_DEVIATION_THRESHOLD_PERCENT در فایل۴ (batch ۴، تاییدشده).
+//   ۲) CROSS_GROUP_DEVIATION_THRESHOLD_PERCENT در فایل۷ — که خودش مستقیماً
+//      از بخش ۲.۷ سند می‌آید («اگر اختلاف کالری از ۱۰٪ کالری آن معده بیشتر
+//      شد، هشدار داده شود»)، یعنی این یکی حتی مستند سند هم هست، نه فقط UX.
+// هر دو دقیقاً روی همین عدد (۱۰) توافق دارند — پس هیچ آستانه‌ی میانی تازه‌ای
+// اختراع نمی‌شود؛ فقط زیر ۱۰٪ (سبز) یا روی/بالای ۱۰٪ (قرمز).
+const DEVIATION_COLORS = { green: "#2e7d32", red: "#c0392b" };
 
 function deviationColor(actual, target) {
   if (!(target > 0)) return DEVIATION_COLORS.red;
   const deviationPercent = (Math.abs(actual - target) / target) * 100;
-  if (deviationPercent <= GREEN_MAX_DEVIATION_PERCENT) return DEVIATION_COLORS.green;
-  if (deviationPercent <= SEVERE_DEVIATION_THRESHOLD_PERCENT) return DEVIATION_COLORS.yellow;
-  return DEVIATION_COLORS.red;
+  return deviationPercent <= SEVERE_DEVIATION_THRESHOLD_PERCENT ? DEVIATION_COLORS.green : DEVIATION_COLORS.red;
 }
 
 export default function NutritionStageTwoGate({ assessment, cascadeResult, onBack }) {
