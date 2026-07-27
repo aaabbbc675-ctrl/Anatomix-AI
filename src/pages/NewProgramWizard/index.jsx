@@ -9,13 +9,14 @@ import StageOneGate from "./StageOneGate";
 import StageTwoGate from "./StageTwoGate";
 import NutritionAssessmentForm from "./NutritionAssessmentForm";
 import NutritionStageOneGate from "./NutritionStageOneGate";
+import NutritionStageTwoGate from "./NutritionStageTwoGate";
 
 // طبق بخش ۲.۳ سند: «+ برنامه جدید» همیشه یعنی شروع سیکل تازه (Stage=1) با seed
 // از آخرین coachOverrides شاگرد — هرگز خروجی منجمد قدیمی به‌عنوان نتیجه‌ی فعلی
 // نمایش داده نمی‌شود؛ موتور همیشه دوباره روی مقادیر (قابل‌ویرایش) اجرا می‌شود.
 export default function NewProgramWizard({ studentId, onDone, onCancel }) {
   // type | assessment | stage1 | stage2 (بدنسازی) | correctiveAssessment | correctiveStage1 | correctiveStage2 (اصلاحی)
-  // | nutritionAssessment | nutritionStage1 | nutritionStage2 (تغذیه — nutritionStage2 در زیرکامیت بعدی ۶-د-۳ اضافه می‌شود)
+  // | nutritionAssessment | nutritionStage1 | nutritionStage2 (تغذیه)
   const [step, setStep] = useState("type");
   const [initialAssessment, setInitialAssessment] = useState(null);
   const [assessment, setAssessment] = useState(null);
@@ -118,10 +119,20 @@ export default function NewProgramWizard({ studentId, onDone, onCancel }) {
         onConfirm={({ intake, stage1Result }) => {
           setAssessment(intake);
           setCascadeResult(stage1Result);
-          // زیرکامیت بعدی (۶-د-۳) بلوک step==="nutritionStage2" را اضافه
-          // می‌کند (NutritionStageTwoGate) — تا آن‌جا این حالت خالی می‌ماند.
           setStep("nutritionStage2");
         }}
+      />
+    );
+  }
+
+  if (step === "nutritionStage2") {
+    return (
+      <NutritionStageTwoGate
+        studentId={studentId}
+        assessment={assessment}
+        cascadeResult={cascadeResult}
+        onBack={() => setStep("nutritionStage1")}
+        onSave={(program) => onDone(program)}
       />
     );
   }
