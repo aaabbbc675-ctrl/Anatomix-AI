@@ -3,6 +3,7 @@ const { createStudentsRepository } = require("./repositories/studentsRepository"
 const { createProgramsRepository } = require("./repositories/programsRepository");
 const { createWeeklyLogsRepository } = require("./repositories/weeklyLogsRepository");
 const { createInjuryBlacklistRepository } = require("./repositories/injuryBlacklistRepository");
+const { createFoodsRepository } = require("./repositories/foodsRepository");
 
 // Explicit, one-line-per-channel registration on purpose: greppable, no
 // reflection over method names, easy to audit against preload.js's exposed
@@ -33,6 +34,12 @@ function registerIpcHandlers(db) {
   ipcMain.handle("db:injuryBlacklist:create", (event, input) => injuryBlacklist.create(input));
   ipcMain.handle("db:injuryBlacklist:getByStudentId", (event, studentId) => injuryBlacklist.getByStudentId(studentId));
   ipcMain.handle("db:injuryBlacklist:remove", (event, id) => injuryBlacklist.remove(id));
+
+  // فقط getAll — تیکه‌ی ب (۶-د-۳) فقط همین را لازم دارد (فیلتر سمت
+  // renderer روی بانک کامل)؛ getByExchangeGroup/search وقتی تیکه‌ی Smart Swap
+  // واقعاً به آن‌ها نیاز داشت اضافه می‌شوند، نه از پیش.
+  const foods = createFoodsRepository(db);
+  ipcMain.handle("db:foods:getAll", () => foods.getAll());
 }
 
 module.exports = { registerIpcHandlers };

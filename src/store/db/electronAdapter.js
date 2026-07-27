@@ -29,4 +29,7 @@ export const electronAdapter = {
     getByStudentId: (studentId) => bridge.injuryBlacklist.getByStudentId(studentId),
     remove: (id) => bridge.injuryBlacklist.remove(id),
   },
+  foods: {
+    getAll: () => bridge.foods.getAll(),
+  },
 };

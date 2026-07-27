@@ -37,4 +37,7 @@ contextBridge.exposeInMainWorld("anatomixDB", {
     getByStudentId: (studentId) => ipcRenderer.invoke("db:injuryBlacklist:getByStudentId", studentId),
     remove: (id) => ipcRenderer.invoke("db:injuryBlacklist:remove", id),
   },
+  foods: {
+    getAll: () => ipcRenderer.invoke("db:foods:getAll"),
+  },
 });

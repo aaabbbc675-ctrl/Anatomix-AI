@@ -171,4 +171,14 @@ export const browserAdapter = {
       writeAll(KEYS.injuryBlacklist, readAll(KEYS.injuryBlacklist).filter((r) => r.id !== id));
     },
   },
+  foods: {
+    // بانک غذا (foods.seed.js) فقط زیر better-sqlite3/Electron واقعی seed
+    // می‌شود؛ اینجا (fallback مرورگر بدون Electron) هیچ معادل localStorage‌ای
+    // برایش ساخته نشده — تکرار محتوای seed در دو جا خطای «دو منبع حقیقت»
+    // است. آرایه‌ی خالی یعنی «در حالت dev-بدون-Electron هیچ غذایی نیست»، نه
+    // یک باگ.
+    async getAll() {
+      return [];
+    },
+  },
 };
