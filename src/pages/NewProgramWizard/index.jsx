@@ -8,13 +8,14 @@ import CorrectiveStageTwoGate from "./CorrectiveStageTwoGate";
 import StageOneGate from "./StageOneGate";
 import StageTwoGate from "./StageTwoGate";
 import NutritionAssessmentForm from "./NutritionAssessmentForm";
+import NutritionStageOneGate from "./NutritionStageOneGate";
 
 // طبق بخش ۲.۳ سند: «+ برنامه جدید» همیشه یعنی شروع سیکل تازه (Stage=1) با seed
 // از آخرین coachOverrides شاگرد — هرگز خروجی منجمد قدیمی به‌عنوان نتیجه‌ی فعلی
 // نمایش داده نمی‌شود؛ موتور همیشه دوباره روی مقادیر (قابل‌ویرایش) اجرا می‌شود.
 export default function NewProgramWizard({ studentId, onDone, onCancel }) {
   // type | assessment | stage1 | stage2 (بدنسازی) | correctiveAssessment | correctiveStage1 | correctiveStage2 (اصلاحی)
-  // | nutritionAssessment | nutritionStage1 | nutritionStage2 (تغذیه — Stage1/Stage2 در زیرکامیت‌های بعدی batch ۶-د اضافه می‌شوند)
+  // | nutritionAssessment | nutritionStage1 | nutritionStage2 (تغذیه — nutritionStage2 در زیرکامیت بعدی ۶-د-۳ اضافه می‌شود)
   const [step, setStep] = useState("type");
   const [initialAssessment, setInitialAssessment] = useState(null);
   const [assessment, setAssessment] = useState(null);
@@ -103,9 +104,23 @@ export default function NewProgramWizard({ studentId, onDone, onCancel }) {
         onCancel={onCancel}
         onSubmit={(values) => {
           setAssessment(values);
-          // زیرکامیت بعدی (۶-د-۲) بلوک step==="nutritionStage1" را اضافه
-          // می‌کند (NutritionStageOneGate) — تا آن‌جا این حالت خالی می‌ماند.
           setStep("nutritionStage1");
+        }}
+      />
+    );
+  }
+
+  if (step === "nutritionStage1") {
+    return (
+      <NutritionStageOneGate
+        assessment={assessment}
+        onBack={() => setStep("nutritionAssessment")}
+        onConfirm={({ intake, stage1Result }) => {
+          setAssessment(intake);
+          setCascadeResult(stage1Result);
+          // زیرکامیت بعدی (۶-د-۳) بلوک step==="nutritionStage2" را اضافه
+          // می‌کند (NutritionStageTwoGate) — تا آن‌جا این حالت خالی می‌ماند.
+          setStep("nutritionStage2");
         }}
       />
     );
