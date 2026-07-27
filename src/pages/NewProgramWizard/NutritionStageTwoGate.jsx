@@ -15,6 +15,31 @@ const MEAL_ROLE_LABELS = {
 };
 const ROLES_ANCHORED_TO_TRAINING_TIME = new Set(["pre_workout", "post_workout", "post_workout_pre_sleep"]);
 
+// تیکه‌ی د: طبق بخش ۳.۲ سند، فقط هشدارهای caution به خروجی نهایی شاگرد
+// می‌روند. کدهای caution ای که واقعاً می‌توانند در safety_check.warnings
+// (خروجی processStage1، فایل۶) ظاهر شوند -- بررسی شد، فقط همین سه‌تا:
+// ea_low (فایل۲)، target_calories_unrealistic (فایل۳/فایل۶)،
+// override_calories_deviated_from_target (فایل۶). بقیه‌ی کدهای ممکن
+// (ea_suboptimal، fat_raised_to_generic_floor، carb_outside_sport_range،
+// protein/fat/carb_below_floor) همه severity=info دارند، هرگز به این آرایه
+// نمی‌رسند. متن‌ها پیش‌نویس من هستند (کپی UI، نه عدد/فرمول) -- لحن طبق
+// نمونه‌ی خودِ سند (بخش ۳.۲، خط ۲۷۳: «ساده و غیرترسناک»).
+const DEFAULT_STUDENT_MESSAGES = {
+  ea_low:
+    "این برنامه با انرژی در دسترس کمتر از حد مطلوب طراحی شده — مربی‌تان این را آگاهانه انتخاب کرده. در صورت خستگی شدید یا سرگیجه با مربی خود صحبت کنید.",
+  target_calories_unrealistic: "کالری هدف این برنامه با محدودیت‌های سلامتی هم‌خوانی کامل ندارد — با مربی خود صحبت کنید.",
+  override_calories_deviated_from_target: "تغییر دستی ماکروها باعث فاصله گرفتن کالری واقعی از هدف اصلی شده.",
+};
+
+// طبق بخش ۳.۲ سند: «اگر coach_note موجود بود، همین جایگزین متن پیش‌فرض
+// می‌شود» + «فقط caution به‌طور پیش‌فرض به خروجی شاگرد می‌رود».
+function buildStudentFacingWarnings(warnings, coachNotes) {
+  return warnings
+    .map((w, index) => ({ ...w, coach_note: coachNotes[index] || null }))
+    .filter((w) => w.severity === "caution")
+    .map((w) => ({ code: w.code, message: w.coach_note ?? DEFAULT_STUDENT_MESSAGES[w.code] ?? w.code }));
+}
+
 // تیکه‌ی ب: فیلتر بانک غذا طبق budget_tier/آلرژی/محدودیت رژیمی از فرم
 // ایستگاه اول. طبق بخش ۲.۶ سند («فیلتر سه‌سطحی: اقتصادی/متوسط/لوکس»)، جهت
 // فیلتر یک‌طرفه است (سقف بودجه) — تصمیم تفسیری من (نه عدد مستند سند): هر
@@ -77,9 +102,17 @@ function deviationColor(actual, target) {
   return deviationPercent <= SEVERE_DEVIATION_THRESHOLD_PERCENT ? DEVIATION_COLORS.green : DEVIATION_COLORS.red;
 }
 
-export default function NutritionStageTwoGate({ assessment, cascadeResult, onBack }) {
+export default function NutritionStageTwoGate({ studentId, assessment, cascadeResult, onBack, onSave }) {
   const [allFoods, setAllFoods] = useState(null);
   const [loadError, setLoadError] = useState(null);
+  // {[warningIndex]: noteText} -- کلید ایندکس امن است چون
+  // cascadeResult.safety_check.warnings برای کل عمر این کامپوننت ثابت است
+  // (فقط یک‌بار در Stage1 محاسبه و به‌عنوان prop پاس داده شده، اینجا تغییر
+  // نمی‌کند).
+  const [coachNotes, setCoachNotes] = useState({});
+  const [showInfoWarnings, setShowInfoWarnings] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState(null);
   // mealFoods[mealIndex] = [{food_id, weight_g}, ...]
   const [mealFoods, setMealFoods] = useState({});
   // {mealIndex, itemIndex, oldFood, sameGroupCandidates, crossGroupQuery,
@@ -241,6 +274,61 @@ export default function NutritionStageTwoGate({ assessment, cascadeResult, onBac
     () => computeTotals(Object.values(mealFoods).flat(), foodsById),
     [mealFoods, foodsById]
   );
+
+  function updateCoachNote(index, text) {
+    setCoachNotes((prev) => ({ ...prev, [index]: text }));
+  }
+
+  // طبق الگوی موجود پروژه (StageTwoGate/CorrectiveStageTwoGate): همان دو
+  // ستون architecture_json/final_program_json روی Programs، program_type="diet".
+  // architecture_json = کل ردِ محاسبه (ورودی خام + خروجی Stage1 + انتخاب واقعی
+  // غذاها + یادداشت‌های مربی)؛ final_program_json = چیزی که واقعاً دست شاگرد
+  // می‌رسد (وعده‌ها با غذای واقعی + فقط هشدارهای caution با متن نهایی).
+  async function handleSave() {
+    setSaving(true);
+    setSaveError(null);
+    try {
+      const warningsWithNotes = cascadeResult.safety_check.warnings.map((w, index) => ({
+        ...w,
+        coach_note: coachNotes[index] || null,
+      }));
+
+      const meals = mealTiming.meals.map((meal) => ({
+        meal_index: meal.meal_index,
+        role: meal.role,
+        foods: (mealFoods[meal.meal_index] ?? []).map((item) => ({
+          food_id: item.food_id,
+          name_fa: foodsById.get(item.food_id)?.name_fa ?? item.food_id,
+          weight_g: item.weight_g,
+        })),
+      }));
+
+      const architecture_json = {
+        intake: assessment,
+        stage1Result: cascadeResult,
+        mealFoods,
+        safety_check_warnings_with_notes: warningsWithNotes,
+      };
+      const final_program_json = {
+        meals,
+        student_facing_warnings: buildStudentFacingWarnings(cascadeResult.safety_check.warnings, coachNotes),
+      };
+
+      const program = await db.programs.create({
+        student_id: studentId,
+        program_type: "diet",
+        status: "active",
+        architecture_json,
+        final_program_json,
+        total_weeks: null,
+      });
+      onSave(program);
+    } catch (err) {
+      setSaveError(err.message || "خطا در ذخیره‌ی برنامه.");
+    } finally {
+      setSaving(false);
+    }
+  }
 
   if (loadError) {
     return (
@@ -443,9 +531,66 @@ export default function NutritionStageTwoGate({ assessment, cascadeResult, onBac
         </table>
       </div>
 
+      <div style={{ marginTop: "1rem", padding: "0.75rem", border: "1px solid #ddd", borderRadius: 8 }}>
+        <strong>نکات مهم برنامه‌ی شما</strong>
+        {(() => {
+          const cautionWarnings = cascadeResult.safety_check.warnings
+            .map((w, index) => ({ ...w, index }))
+            .filter((w) => w.severity === "caution");
+          const infoWarnings = cascadeResult.safety_check.warnings
+            .map((w, index) => ({ ...w, index }))
+            .filter((w) => w.severity === "info");
+
+          function renderWarningRow(w) {
+            return (
+              <div key={w.index} style={{ marginTop: "0.5rem", paddingRight: "0.5rem", borderRight: `3px solid ${w.severity === "caution" ? "#c0392b" : "#8a6d00"}` }}>
+                <span style={{ fontSize: "0.85rem", color: w.severity === "caution" ? "#c0392b" : "#8a6d00" }}>
+                  [{w.severity}] {w.code}
+                  {w.deviation_kcal !== undefined ? ` (${round1(w.deviation_kcal)} kcal)` : ""}
+                </span>
+                {w.severity === "caution" && (
+                  <p style={{ margin: "0.2rem 0", fontSize: "0.8rem", color: "#666" }}>
+                    متن پیش‌فرض شاگرد: «{DEFAULT_STUDENT_MESSAGES[w.code] ?? w.code}»
+                  </p>
+                )}
+                <textarea
+                  style={{ width: "100%", minHeight: 40, fontSize: "0.85rem" }}
+                  placeholder="یادداشت اختیاری برای شاگرد (اگر خالی بماند، متن پیش‌فرض بالا نمایش داده می‌شود)"
+                  value={coachNotes[w.index] ?? ""}
+                  onChange={(e) => updateCoachNote(w.index, e.target.value)}
+                />
+              </div>
+            );
+          }
+
+          return (
+            <>
+              {cautionWarnings.length === 0 && infoWarnings.length === 0 && (
+                <p style={{ fontSize: "0.85rem", color: "#666" }}>هیچ هشداری از ایستگاه اول ثبت نشده.</p>
+              )}
+              {cautionWarnings.map(renderWarningRow)}
+
+              {infoWarnings.length > 0 && (
+                <>
+                  <button type="button" style={{ marginTop: "0.5rem" }} onClick={() => setShowInfoWarnings((v) => !v)}>
+                    {showInfoWarnings ? "پنهان کردن" : "نمایش"} {infoWarnings.length} هشدار اطلاعاتی (فقط داشبورد مربی، به شاگرد نمی‌رود)
+                  </button>
+                  {showInfoWarnings && infoWarnings.map(renderWarningRow)}
+                </>
+              )}
+            </>
+          );
+        })()}
+      </div>
+
+      {saveError && <p style={{ color: "#c0392b" }}>{saveError}</p>}
+
       <div style={{ marginTop: "1.25rem" }}>
-        <button type="button" onClick={onBack}>
+        <button type="button" onClick={onBack} disabled={saving}>
           ← بازگشت
+        </button>{" "}
+        <button type="button" onClick={handleSave} disabled={saving}>
+          {saving ? "در حال ذخیره..." : "تایید نهایی و ذخیره‌ی برنامه"}
         </button>
       </div>
     </div>
