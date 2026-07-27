@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { db } from "../../store/db";
 import { processMealTiming } from "../../../engine/nutrition/file5_mealTiming.js";
 import { SEVERE_DEVIATION_THRESHOLD_PERCENT } from "../../../engine/nutrition/file4_periodizationAndCarbCycle.js";
+import { computeSameGroupSwap, computeCrossGroupAnchorSwap, getSameGroupCandidates } from "../../../engine/nutrition/file7_smartSwap.js";
 
 // تیکه‌ی الف: اسکلت اسلات‌های وعده — بدون تغییر از قبل (role هر وعده مستقیماً
 // از processMealTiming، فایل۵، batch ۵).
@@ -81,6 +82,9 @@ export default function NutritionStageTwoGate({ assessment, cascadeResult, onBac
   const [loadError, setLoadError] = useState(null);
   // mealFoods[mealIndex] = [{food_id, weight_g}, ...]
   const [mealFoods, setMealFoods] = useState({});
+  // {mealIndex, itemIndex, oldFood, sameGroupCandidates, crossGroupQuery,
+  // crossGroupResults, crossGroupPreview: null|{newFood, result}, crossGroupError}
+  const [swapPanel, setSwapPanel] = useState(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -146,6 +150,93 @@ export default function NutritionStageTwoGate({ assessment, cascadeResult, onBac
     }));
   }
 
+  // getSameGroupCandidates (فایل۷) روی یک foodsRepository سنکرون
+  // (getById/getByExchangeGroup) طراحی شده — همان چیزی که در batch ۱
+  // ساخته شد. اینجا در renderer فقط db.foods.getAll (async) داریم، اما چون
+  // کل بانک از قبل در allFoods بارگذاری شده، یک آداپتور سنکرون از همان
+  // داده‌ی حاضر می‌سازیم — نه یک IPC تازه، نه بازسازی منطق getSameGroupCandidates
+  // خودش (که مستقیماً و بدون تغییر صدا زده می‌شود). is_active=1 اینجا هم
+  // اعمال می‌شود چون getByExchangeGroup واقعی (foodsRepository.js) هم دقیقاً
+  // همین فیلتر را دارد.
+  const syncFoodsRepo = useMemo(
+    () => ({
+      getById: (id) => foodsById.get(id) ?? null,
+      getByExchangeGroup: (group) => (allFoods ?? []).filter((f) => f.exchange_group === group && f.is_active === 1),
+    }),
+    [allFoods, foodsById]
+  );
+
+  function openSwapPanel(mealIndex, itemIndex) {
+    const item = mealFoods[mealIndex][itemIndex];
+    const { old_food, candidates } = getSameGroupCandidates(syncFoodsRepo, item.food_id);
+    setSwapPanel({
+      mealIndex,
+      itemIndex,
+      oldFood: old_food,
+      sameGroupCandidates: candidates,
+      crossGroupQuery: "",
+      crossGroupResults: [],
+      crossGroupPreview: null,
+      crossGroupError: null,
+    });
+  }
+  function closeSwapPanel() {
+    setSwapPanel(null);
+  }
+
+  // مسیر هم‌گروه: بدون هشدار، بدون پیش‌نمایش — دقیقاً طبق طرح تاییدشده‌ی
+  // batch ۶-ب (تبدیل واحد قطعی است، نیازی به تایید میانی ندارد).
+  function applySameGroupSwap(newFood) {
+    const item = mealFoods[swapPanel.mealIndex][swapPanel.itemIndex];
+    const result = computeSameGroupSwap({ old_food: swapPanel.oldFood, new_food: newFood, old_weight_g: item.weight_g });
+    setFoodWeightAndFood(swapPanel.mealIndex, swapPanel.itemIndex, newFood.id, result.new_weight_g);
+    closeSwapPanel();
+  }
+
+  function runCrossGroupSearch(query) {
+    setSwapPanel((prev) => (prev ? { ...prev, crossGroupQuery: query, crossGroupPreview: null, crossGroupError: null } : prev));
+    if (!query.trim() || !allFoods) {
+      setSwapPanel((prev) => (prev ? { ...prev, crossGroupResults: [] } : prev));
+      return;
+    }
+    const q = query.trim();
+    const results = allFoods.filter((f) => f.id !== swapPanel.oldFood.id && f.name_fa.includes(q));
+    setSwapPanel((prev) => (prev ? { ...prev, crossGroupResults: results } : prev));
+  }
+
+  // مسیر بین‌گروهی (Anchor Macro، فایل۷): طبق طرح تاییدشده، اول پیش‌نمایش
+  // دلتای سه ماکرو + هشدارها نشان داده می‌شود، تایید نهایی جدا از انتخاب
+  // است. meal_calories چون هدف ماکروی هر وعده هنوز (تیکه‌های بعدی) وارد
+  // نشده، مجموع کالری واقعیِ همین اسلات قبل از swap است — تنها عدد واقعی
+  // در دسترس، نه یک هدف حدسی.
+  function previewCrossGroupSwap(newFood) {
+    const item = mealFoods[swapPanel.mealIndex][swapPanel.itemIndex];
+    const meal_calories = computeTotals(mealFoods[swapPanel.mealIndex], foodsById).calories;
+    try {
+      const result = computeCrossGroupAnchorSwap({
+        old_food: swapPanel.oldFood,
+        new_food: newFood,
+        old_weight_g: item.weight_g,
+        meal_calories,
+      });
+      setSwapPanel((prev) => ({ ...prev, crossGroupPreview: { newFood, result }, crossGroupError: null }));
+    } catch (err) {
+      setSwapPanel((prev) => ({ ...prev, crossGroupPreview: null, crossGroupError: err.message }));
+    }
+  }
+  function confirmCrossGroupSwap() {
+    const { newFood, result } = swapPanel.crossGroupPreview;
+    setFoodWeightAndFood(swapPanel.mealIndex, swapPanel.itemIndex, newFood.id, result.new_weight_g, result.warnings);
+    closeSwapPanel();
+  }
+
+  function setFoodWeightAndFood(mealIndex, itemIndex, food_id, weight_g, swapWarnings = []) {
+    setMealFoods((prev) => ({
+      ...prev,
+      [mealIndex]: (prev[mealIndex] ?? []).map((it, i) => (i === itemIndex ? { food_id, weight_g, swapWarnings } : it)),
+    }));
+  }
+
   const dayTotals = useMemo(
     () => computeTotals(Object.values(mealFoods).flat(), foodsById),
     [mealFoods, foodsById]
@@ -204,12 +295,95 @@ export default function NutritionStageTwoGate({ assessment, cascadeResult, onBac
                     style={{ width: "5rem" }}
                   />
                   <span>گرم</span>
+                  <button type="button" onClick={() => openSwapPanel(meal.meal_index, itemIndex)}>
+                    🔄 جایگزینی
+                  </button>
                   <button type="button" onClick={() => removeFoodFromMeal(meal.meal_index, itemIndex)}>
                     حذف
                   </button>
+                  {item.swapWarnings?.map((w, wi) => (
+                    <span key={wi} style={{ fontSize: "0.8rem", color: w.severity === "caution" ? "#c0392b" : "#8a6d00" }}>
+                      [{w.code}]
+                    </span>
+                  ))}
                 </div>
               );
             })}
+
+            {swapPanel && swapPanel.mealIndex === meal.meal_index && (
+              <div style={{ marginTop: "0.5rem", padding: "0.5rem", border: "1px solid #2e7d32", borderRadius: 8 }}>
+                <strong>جایگزینی «{swapPanel.oldFood.name_fa}»</strong>
+
+                <p style={{ fontSize: "0.85rem", color: "#666", margin: "0.4rem 0 0.2rem" }}>
+                  گزینه‌های هم‌گروه ({swapPanel.oldFood.exchange_group}) — بدون هشدار، تبدیل واحد قطعی:
+                </p>
+                {swapPanel.sameGroupCandidates.length === 0 && <p style={{ fontSize: "0.85rem" }}>هیچ گزینه‌ی هم‌گروه دیگری در بانک نیست.</p>}
+                <ul style={{ margin: 0, paddingRight: "1.2rem" }}>
+                  {swapPanel.sameGroupCandidates.map((f) => (
+                    <li key={f.id}>
+                      {f.name_fa}{" "}
+                      <button type="button" onClick={() => applySameGroupSwap(f)}>
+                        انتخاب
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+
+                <p style={{ fontSize: "0.85rem", color: "#666", margin: "0.6rem 0 0.2rem" }}>
+                  یا جست‌وجوی آزاد در کل بانک (جایگزینی بین‌گروهی، طبق Anchor Macro Rule):
+                </p>
+                <input
+                  type="text"
+                  value={swapPanel.crossGroupQuery}
+                  onChange={(e) => runCrossGroupSearch(e.target.value)}
+                  placeholder="نام غذا..."
+                />
+                <ul style={{ margin: "0.3rem 0", paddingRight: "1.2rem" }}>
+                  {swapPanel.crossGroupResults.map((f) => (
+                    <li key={f.id}>
+                      {f.name_fa} ({f.exchange_group}){" "}
+                      <button type="button" onClick={() => previewCrossGroupSwap(f)}>
+                        پیش‌نمایش
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+
+                {swapPanel.crossGroupError && <p style={{ color: "#c0392b", fontSize: "0.85rem" }}>{swapPanel.crossGroupError}</p>}
+
+                {swapPanel.crossGroupPreview && (
+                  <div style={{ marginTop: "0.4rem", padding: "0.4rem", background: "#fafafa", border: "1px solid #ddd" }}>
+                    <strong>پیش‌نمایش جایگزینی با «{swapPanel.crossGroupPreview.newFood.name_fa}»</strong>
+                    <p style={{ margin: "0.3rem 0", fontSize: "0.85rem" }}>
+                      وزن جدید: {round1(swapPanel.crossGroupPreview.result.new_weight_g)} گرم — دلتا: کالری{" "}
+                      {round1(swapPanel.crossGroupPreview.result.delta_calories)} — پروتئین{" "}
+                      {round1(swapPanel.crossGroupPreview.result.delta_protein_g)} — کربوهیدرات{" "}
+                      {round1(swapPanel.crossGroupPreview.result.delta_carb_g)} — چربی{" "}
+                      {round1(swapPanel.crossGroupPreview.result.delta_fat_g)}
+                    </p>
+                    <ul style={{ margin: 0, paddingRight: "1.2rem" }}>
+                      {swapPanel.crossGroupPreview.result.warnings.map((w, wi) => (
+                        <li key={wi} style={{ color: w.severity === "caution" ? "#c0392b" : "#8a6d00", fontSize: "0.85rem" }}>
+                          {w.code === "cross_group_swap_not_guaranteed"
+                            ? "این جایگزینی هم‌گروه نیست — تطابق کامل ماکرو تضمین نمی‌شود."
+                            : w.code}
+                          {w.deviation_kcal !== undefined ? ` (${round1(w.deviation_kcal)} kcal)` : ""}
+                        </li>
+                      ))}
+                    </ul>
+                    <button type="button" onClick={confirmCrossGroupSwap} style={{ marginTop: "0.3rem" }}>
+                      تایید جایگزینی
+                    </button>
+                  </div>
+                )}
+
+                <div style={{ marginTop: "0.5rem" }}>
+                  <button type="button" onClick={closeSwapPanel}>
+                    انصراف
+                  </button>
+                </div>
+              </div>
+            )}
 
             <select
               style={{ marginTop: "0.5rem" }}
