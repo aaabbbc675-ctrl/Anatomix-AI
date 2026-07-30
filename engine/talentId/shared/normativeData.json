@@ -1,0 +1,105 @@
+{
+  "data_status": "placeholder_unverified",
+  "data_status_note": "این اعداد از سند قدیمی پروژه (پرامپ استعداد یابی ورزشی.docx) reuse شده‌اند که خودش این اعداد را «۳ سطح فرضی» اعلام کرده بود — نه از DMT/Eurofit/ALPHA/FIFA واقعی. فقط برای تست منطق lookup در Commit 4. رجوع کنید به docs/TODO-normative-data.md قبل از استفاده‌ی production.",
+  "version": "0.1-placeholder",
+  "sources": ["پرامپ استعداد یابی ورزشی.docx (سند قدیمی پروژه — hypothetical placeholder، نه منبع علمی)"],
+  "last_updated": "2026-07-31",
+  "normative_data": {
+    "male": {
+      "bio_age_10_11": {
+        "description": "Placeholder — بر اساس age_10_12 سند قدیمی (Pre-PHV)",
+        "tests": {
+          "vertical_jump": {
+            "unit": "cm",
+            "higher_is_better": true,
+            "tiers": {
+              "excellent_top_20": { "min": 40, "max": 999 },
+              "average_mid_60": { "min": 25, "max": 39.9 },
+              "poor_bottom_20": { "min": 0, "max": 24.9 }
+            }
+          },
+          "sprint_10m": {
+            "unit": "seconds",
+            "higher_is_better": false,
+            "tiers": {
+              "excellent_top_20": { "min": 0, "max": 2.10 },
+              "average_mid_60": { "min": 2.11, "max": 2.50 },
+              "poor_bottom_20": { "min": 2.51, "max": 999 }
+            }
+          }
+        }
+      },
+      "bio_age_14_15": {
+        "description": "Placeholder — بر اساس age_13_15 سند قدیمی (Circa-PHV / Peak Growth)",
+        "tests": {
+          "vertical_jump": {
+            "unit": "cm",
+            "higher_is_better": true,
+            "tiers": {
+              "excellent_top_20": { "min": 52, "max": 999 },
+              "average_mid_60": { "min": 35, "max": 51.9 },
+              "poor_bottom_20": { "min": 0, "max": 34.9 }
+            }
+          },
+          "sprint_10m": {
+            "unit": "seconds",
+            "higher_is_better": false,
+            "tiers": {
+              "excellent_top_20": { "min": 0, "max": 1.85 },
+              "average_mid_60": { "min": 1.86, "max": 2.20 },
+              "poor_bottom_20": { "min": 2.21, "max": 999 }
+            }
+          }
+        }
+      }
+    },
+    "female": {
+      "bio_age_10_11": {
+        "description": "Placeholder — بر اساس age_10_12 سند قدیمی (Early Growth Spurt)",
+        "tests": {
+          "vertical_jump": {
+            "unit": "cm",
+            "higher_is_better": true,
+            "tiers": {
+              "excellent_top_20": { "min": 35, "max": 999 },
+              "average_mid_60": { "min": 22, "max": 34.9 },
+              "poor_bottom_20": { "min": 0, "max": 21.9 }
+            }
+          },
+          "sprint_10m": {
+            "unit": "seconds",
+            "higher_is_better": false,
+            "tiers": {
+              "excellent_top_20": { "min": 0, "max": 2.20 },
+              "average_mid_60": { "min": 2.21, "max": 2.65 },
+              "poor_bottom_20": { "min": 2.66, "max": 999 }
+            }
+          }
+        }
+      },
+      "bio_age_14_15": {
+        "description": "Placeholder — بر اساس age_13_15 سند قدیمی (Post-PHV / Maturation)",
+        "tests": {
+          "vertical_jump": {
+            "unit": "cm",
+            "higher_is_better": true,
+            "tiers": {
+              "excellent_top_20": { "min": 42, "max": 999 },
+              "average_mid_60": { "min": 28, "max": 41.9 },
+              "poor_bottom_20": { "min": 0, "max": 27.9 }
+            }
+          },
+          "sprint_10m": {
+            "unit": "seconds",
+            "higher_is_better": false,
+            "tiers": {
+              "excellent_top_20": { "min": 0, "max": 2.00 },
+              "average_mid_60": { "min": 2.01, "max": 2.45 },
+              "poor_bottom_20": { "min": 2.46, "max": 999 }
+            }
+          }
+        }
+      }
+    }
+  }
+}
