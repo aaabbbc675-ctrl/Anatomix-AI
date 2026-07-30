@@ -28,12 +28,19 @@ const sportRequirementMatrix = {
       strong_upper_body_frame: 10,
       cormic_high: 10,
     },
+    // طبق تصمیم تاییدشده‌ی Commit 5: body_fat_low → bf_very_low (نام رسمی
+    // driver طبق بخش ۵.۵ سند).
     composition_bonuses: {
-      body_fat_low: 10,
+      bf_very_low: 10,
       smm_high: 10,
     },
+    // طبق تصمیم تاییدشده‌ی Commit 5: balance_high → balance_score_high
+    // (نام رسمی بخش ۵.۵ سند) + bilateral_asymmetry_high اضافه شد چون
+    // soccer در لیست پنالتی بخش ۵.۳.۶ سند است (بدون این کلید، آن قانون
+    // سند هیچ‌وقت برای هیچ‌کدام از ۵ رشته‌ی Commit 1 اجرا نمی‌شد).
     biometric_bonuses: {
-      balance_high: 10,
+      balance_score_high: 10,
+      bilateral_asymmetry_high: -15,
     },
 
     performance_weights: {
@@ -94,8 +101,12 @@ const sportRequirementMatrix = {
       cormic_high: 15,
       ape_index_low: 10,
     },
+    // ffmi_athletic طبق تصمیم تاییدشده‌ی Commit 5 اضافه شد: کشتی در لیست
+    // بونوس بخش ۵.۳.۸ سند است (ffm_index بین ۲۴ تا ۲۷)، بدون این کلید آن
+    // قانون هیچ‌وقت اجرا نمی‌شد.
     composition_bonuses: {
       smm_high: 15,
+      ffmi_athletic: 15,
     },
     biometric_bonuses: {},
 
@@ -162,7 +173,11 @@ const sportRequirementMatrix = {
       tall_stature: { threshold_cm_male: 195, threshold_cm_female: 180, bonus: 20 },
     },
     composition_bonuses: {},
-    biometric_bonuses: {},
+    // bilateral_asymmetry_high طبق تصمیم تاییدشده‌ی Commit 5 اضافه شد:
+    // volleyball در لیست پنالتی بخش ۵.۳.۶ سند است (رشته‌ی پرشی، ریسک ACL).
+    biometric_bonuses: {
+      bilateral_asymmetry_high: -15,
+    },
 
     performance_weights: {
       vertical_jump: 0.3,
@@ -296,7 +311,11 @@ const sportRequirementMatrix = {
     composition_bonuses: {
       smm_high: 20,
     },
-    biometric_bonuses: {},
+    // handgrip_asymmetry_high طبق تصمیم تاییدشده‌ی Commit 5 اضافه شد:
+    // weightlifting در لیست پنالتی بخش ۵.۳.۷ سند است.
+    biometric_bonuses: {
+      handgrip_asymmetry_high: -10,
+    },
 
     performance_weights: {
       handgrip: 0.25,

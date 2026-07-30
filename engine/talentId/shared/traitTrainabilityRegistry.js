@@ -24,6 +24,13 @@ const traitTrainabilityRegistry = {
   smm_high: TRAINABILITY.TRAINABLE,
   resting_hr_low: TRAINABILITY.TRAINABLE,
   balance_score_high: TRAINABILITY.TRAINABLE,
+  // ۵ کلید زیر طبق تصمیم تاییدشده‌ی Commit 5 اضافه شدند (برای
+  // file4_bioScoreCalculator.js) — دقیقاً همین ۵ تا، نه کم نه زیاد:
+  tall_stature: TRAINABILITY.INNATE, // قد ذاتی است، با تمرین تغییر نمی‌کند
+  tbw_high: TRAINABILITY.PARTIAL, // تا حدی با هیدراتاسیون/تغذیه قابل تغییر
+  ffmi_athletic: TRAINABILITY.TRAINABLE, // توده‌ی عضلانی با تمرین قدرتی می‌سازد
+  bilateral_asymmetry_high: TRAINABILITY.TRAINABLE, // با تمرین اصلاحی/یک‌طرفه قابل جبران
+  handgrip_asymmetry_high: TRAINABILITY.TRAINABLE, // با تمرین یک‌طرفه‌ی پنجه قابل جبران
 };
 
 function getTrainability(driverId) {
