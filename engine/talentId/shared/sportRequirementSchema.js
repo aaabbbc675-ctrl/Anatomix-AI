@@ -30,6 +30,15 @@ const PSYCH_TRAITS = [
 
 const WEIGHT_SUM_TOLERANCE = 0.01;
 
+// طبق تصمیم تاییدشده‌ی Commit 19: فقط رشته‌هایی که در این allowlist صریحاً
+// نام برده شده‌اند مجازند performance_weights خالی داشته باشند (تنها مورد
+// فعلی: chess — هیچ تست فیزیکی موجود ربطی به شطرنج ندارد). این یک محافظ
+// عمدی است، نه راحتی: بدون این allowlist، یک رشته‌ی آینده که به‌اشتباه
+// (نه آگاهانه) performance_weights را خالی بگذارد بی‌صدا از چک رد می‌شد.
+// اگر رشته‌ی جدیدی واقعاً بدون بُعد فیزیکی معنادار اضافه شد، این لیست را
+// آگاهانه گسترش بده.
+const EMPTY_PERFORMANCE_WEIGHTS_ALLOWLIST = new Set(["chess"]);
+
 function validateSportEntry(entry) {
   if (!entry || typeof entry !== "object") {
     throw new TalentIdError("SPORT_ENTRY_INVALID", "sport entry باید یک آبجکت باشد.", { entry });
@@ -69,7 +78,15 @@ function validateSportEntry(entry) {
     );
   }
   const weightSum = Object.values(entry.performance_weights).reduce((a, b) => a + b, 0);
-  if (Math.abs(weightSum - 1.0) > WEIGHT_SUM_TOLERANCE) {
+  const hasEmptyWeights = Object.keys(entry.performance_weights).length === 0;
+  if (hasEmptyWeights && !EMPTY_PERFORMANCE_WEIGHTS_ALLOWLIST.has(entry.id)) {
+    throw new TalentIdError(
+      "SPORT_ENTRY_WEIGHT_SUM",
+      `رشته "${entry.id}": performance_weights خالی است. این فقط برای رشته‌های صراحتاً بدون بُعد فیزیکی مجاز است (فهرست فعلی: ${[...EMPTY_PERFORMANCE_WEIGHTS_ALLOWLIST].join(", ")}). اگر این یک رشته‌ی جدید و واقعاً بدون تست فیزیکی مرتبط است، EMPTY_PERFORMANCE_WEIGHTS_ALLOWLIST را آگاهانه گسترش بده؛ در غیر این صورت این احتمالاً یک باگ است.`,
+      { sportId: entry.id }
+    );
+  }
+  if (!hasEmptyWeights && Math.abs(weightSum - 1.0) > WEIGHT_SUM_TOLERANCE) {
     throw new TalentIdError(
       "SPORT_ENTRY_WEIGHT_SUM",
       `رشته "${entry.id}": مجموع performance_weights باید ۱.۰۰ باشد، مقدار فعلی ${weightSum.toFixed(3)} است.`,
@@ -108,4 +125,4 @@ function validateSportEntry(entry) {
   return true;
 }
 
-export { validateSportEntry, VALID_CATEGORIES, PSYCH_TRAITS };
+export { validateSportEntry, VALID_CATEGORIES, PSYCH_TRAITS, EMPTY_PERFORMANCE_WEIGHTS_ALLOWLIST };

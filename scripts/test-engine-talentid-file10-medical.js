@@ -74,9 +74,19 @@ function assert(condition, message) {
   });
 
   console.log("\n[cardiovascular_disease — universal hold]");
-  check("همه‌ی ۵ رشته (هیچ‌کدام در always_safe نیستند) → medical_hold می‌گیرند", () => {
+  check("همه‌ی رشته‌ها به‌جز always_safe (chess) → medical_hold می‌گیرند", () => {
+    // ⚠️ به‌روزرسانی Commit 19: با ساخته‌شدن chess، این تست دیگر نمی‌تواند
+    // فرض کند «هیچ‌کدام در always_safe نیستند» — chess از قبل (Commit 1)
+    // در activePathologyMap.cardiovascular_disease.always_safe بود، صرفاً
+    // تا حالا خفته بود چون رشته‌ای با این id وجود نداشت. این یافته‌ی
+    // مثبت است (صحت طراحی)، نه رگرسیون.
     const holds = calculateMedicalHolds(sportRequirementMatrix, { chronic_conditions: ["cardiovascular_disease"] });
+    const alwaysSafeIds = activePathologyMap.cardiovascular_disease.always_safe;
     for (const sportId of Object.keys(sportRequirementMatrix)) {
+      if (alwaysSafeIds.includes(sportId)) {
+        assert(holds[sportId].status === "clear", `${sportId} در always_safe است، باید clear باشد`);
+        continue;
+      }
       assert(holds[sportId].status === "medical_hold", `${sportId} باید medical_hold باشد`);
       assert(holds[sportId].required_specialist === "cardiologist", `${sportId}: specialist نادرست`);
     }

@@ -44,7 +44,7 @@ function assert(condition, message) {
     };
   }
 
-  console.log("\n[پوشش sportSimilarityGraph — به‌روزشده پس از Commit 17 (۲۹ رشته)]");
+  console.log("\n[پوشش sportSimilarityGraph — به‌روزشده تجمعی پس از Commit 17-19 (۵۲ رشته)]");
   // ⚠️ به‌روزرسانی Commit 17: sportSimilarityGraph.js از حالت دستی‌نوشته
   // (۵ رشته) به محاسبه‌ی برنامه‌ای از similar_sports کل matrix تغییر کرد.
   // چند رابطه‌ی قبلاً dormant (چون رشته‌ی هدف ساخته نشده بود) حالا فعال
@@ -57,26 +57,33 @@ function assert(condition, message) {
     assert(tp.weightlifting_olympic === 0.6, `weightlifting_olympic: انتظار ۰.۶، گرفتیم ${tp.weightlifting_olympic}`);
     assert(tp.boxing === 0.6, `boxing: انتظار ۰.۶، گرفتیم ${tp.boxing}`);
   });
-  check("weightlifting_olympic.transfer_potential بدون تغییر: فقط wrestling_freestyle با ۰.۷۵ (هیچ‌کدام از ۲۴ رشته‌ی جدید به آن ارجاع نمی‌دهند)", () => {
+  check("weightlifting_olympic.transfer_potential بعد از Commit 19: powerlifting(۰.۹، هر ۳ دسته، خفته‌ی Commit 1) هم اضافه شد", () => {
+    // ⚠️ به‌روزرسانی Commit 19: تا Commit 18 این تست «بدون تغییر» بود چون
+    // powerlifting هنوز ساخته نشده بود. با ساخته‌شدنش، ارجاع ۳-دسته‌ای
+    // خفته‌ی weightlifting_olympic→powerlifting (از Commit 1) فعال شد.
     const tp = sportSimilarityGraph.weightlifting_olympic.transfer_potential;
-    assert(Object.keys(tp).length === 1, "باید دقیقاً ۱ مورد داشته باشد");
-    assert(tp.wrestling_freestyle === 0.75, `انتظار ۰.۷۵، گرفتیم ${tp.wrestling_freestyle}`);
+    assert(Object.keys(tp).length === 2, `انتظار ۲ مورد، گرفتیم ${Object.keys(tp).length}`);
+    assert(tp.wrestling_freestyle === 0.75, `wrestling_freestyle: انتظار ۰.۷۵، گرفتیم ${tp.wrestling_freestyle}`);
+    assert(tp.powerlifting === 0.9, `powerlifting: انتظار ۰.۹، گرفتیم ${tp.powerlifting}`);
   });
-  check("volleyball_middle_blocker.transfer_potential بعد از Commit 18 حالا ۴ مورد دارد: basketball_center و volleyball_outside هم فعال شدند (ارجاعات خفته‌ی Commit 1)", () => {
-    // ⚠️ به‌روزرسانی Commit 18: با ساخته‌شدن basketball_center (by_anthropometry)
-    // و volleyball_outside (by_psychology)، دو ارجاع خفته‌ی دیگر از Commit 1
-    // فعال شدند — یافته‌ی مثبت، نه رگرسیون (هم‌الگوی Commit 17).
+  check("volleyball_middle_blocker.transfer_potential بعد از Commit 19: high_jump(۰.۷۵، ۲ دسته، خفته‌ی Commit 1) هم اضافه شد — حالا ۵ مورد", () => {
+    // ⚠️ به‌روزرسانی Commit 18: basketball_center/volleyball_outside فعال
+    // شدند (۲→۴ مورد). به‌روزرسانی Commit 19: high_jump هم فعال شد (۴→۵).
     const tp = sportSimilarityGraph.volleyball_middle_blocker.transfer_potential;
-    assert(Object.keys(tp).length === 4, `انتظار ۴ مورد، گرفتیم ${Object.keys(tp).length}`);
+    assert(Object.keys(tp).length === 5, `انتظار ۵ مورد، گرفتیم ${Object.keys(tp).length}`);
     assert(tp.swimming_general === 0.6, `انتظار ۰.۶، گرفتیم ${tp.swimming_general}`);
     assert(tp.gymnastics_artistic === 0.6, `انتظار ۰.۶، گرفتیم ${tp.gymnastics_artistic}`);
     assert(tp.basketball_center === 0.6, `basketball_center: انتظار ۰.۶، گرفتیم ${tp.basketball_center}`);
     assert(tp.volleyball_outside === 0.6, `volleyball_outside: انتظار ۰.۶، گرفتیم ${tp.volleyball_outside}`);
+    assert(tp.high_jump === 0.75, `high_jump: انتظار ۰.۷۵، گرفتیم ${tp.high_jump}`);
   });
-  check("swimming_general.transfer_potential دیگر خالی نیست: حالا cycling_road(۰.۶) دارد (رابطه‌ی از قبل موجود، تازه‌فعال‌شده)", () => {
+  check("swimming_general.transfer_potential بعد از Commit 19: rowing(۰.۹، هر ۳ دسته، خفته‌ی Commit 1) هم اضافه شد — قوی‌ترین رابطه‌ی کل ماتریس", () => {
+    // ⚠️ به‌روزرسانی Commit 19: rowing حالا ساخته شده و ارجاع ۳-دسته‌ای
+    // خفته‌ی swimming_general→rowing (از Commit 1) فعال شد.
     const tp = sportSimilarityGraph.swimming_general.transfer_potential;
-    assert(Object.keys(tp).length === 1, `انتظار ۱ مورد، گرفتیم ${Object.keys(tp).length}`);
-    assert(tp.cycling_road === 0.6, `انتظار ۰.۶، گرفتیم ${tp.cycling_road}`);
+    assert(Object.keys(tp).length === 2, `انتظار ۲ مورد، گرفتیم ${Object.keys(tp).length}`);
+    assert(tp.cycling_road === 0.6, `cycling_road: انتظار ۰.۶، گرفتیم ${tp.cycling_road}`);
+    assert(tp.rowing === 0.9, `rowing: انتظار ۰.۹، گرفتیم ${tp.rowing}`);
   });
   check("soccer_striker.transfer_potential دیگر خالی نیست: حالا sprint_100m/boxing/handball_pivot دارد (روابط از قبل موجود در similar_sports خودش، تا Commit 17 dormant بودند)", () => {
     const tp = sportSimilarityGraph.soccer_striker.transfer_potential;
@@ -106,6 +113,18 @@ function assert(condition, message) {
   });
   check("basketball_playmaker.transfer_potential: خالی (صادقانه، بدون ارتباط حدسی)", () => {
     const tp = sportSimilarityGraph.basketball_playmaker.transfer_potential;
+    assert(Object.keys(tp).length === 0, "باید کاملاً خالی باشد");
+  });
+
+  console.log("\n[پوشش sportSimilarityGraph — رشته‌های تازه‌ساخته‌شده‌ی Commit 19]");
+  check("shot_put.transfer_potential: discus(۰.۹، ۲ دسته) + weightlifting_olympic(۰.۶، ۱ دسته)", () => {
+    const tp = sportSimilarityGraph.shot_put.transfer_potential;
+    assert(Object.keys(tp).length === 2, `انتظار ۲ مورد، گرفتیم ${Object.keys(tp).length}`);
+    assert(tp.discus === 0.9, `discus: انتظار ۰.۹، گرفتیم ${tp.discus}`);
+    assert(tp.weightlifting_olympic === 0.6, `weightlifting_olympic: انتظار ۰.۶، گرفتیم ${tp.weightlifting_olympic}`);
+  });
+  check("chess.transfer_potential: کاملاً خالی (عمدی — تنها رشته‌ی ماتریس بدون هیچ performance_weights)", () => {
+    const tp = sportSimilarityGraph.chess.transfer_potential;
     assert(Object.keys(tp).length === 0, "باید کاملاً خالی باشد");
   });
 

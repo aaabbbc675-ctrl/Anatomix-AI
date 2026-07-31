@@ -39,6 +39,10 @@ const activePathologyMap = {
       // (بدون حمله بالای تور، طبق قانون رسمی FIVB).
       volleyball_setter: "moderate_risk",
       volleyball_outside: "moderate_risk",
+      // ⚠️ افزوده‌شده در Commit 19 (جدید، نه کپی): «rower's back» — فتق
+      // دیسک از فلکشن تکراری تحت بار، مفهوم مستند و شناخته‌شده در طب
+      // ورزشی قایقرانی.
+      rowing: "high_risk",
     },
     reason: "فتق دیسک فعال + بار محوری روی ستون فقرات = ریسک بالای تشدید",
   },
@@ -76,6 +80,14 @@ const activePathologyMap = {
       // moderate_risk (نه high_risk مثل شنا/هندبال) چون حرکت شیرجه متناوب
       // است، نه تکراری/Overhead مداوم مثل شنا.
       soccer_goalkeeper: "moderate_risk",
+      // ⚠️ افزوده‌شده در Commit 19 (جدید، نه کپی): هر ۶ رشته حرکت
+      // Overhead/فشار تکراری شانه دارند (پرس/پرتاب/کشش/ورود به آب).
+      bodybuilding: "high_risk",
+      shot_put: "high_risk",
+      discus: "high_risk",
+      climbing: "high_risk",
+      diving: "high_risk",
+      archery: "high_risk",
     },
     reason: "گیرگیری/پارگی روتاتور کاف + حرکات Overhead = تشدید و پارگی کامل",
   },
@@ -109,6 +121,8 @@ const activePathologyMap = {
       volleyball_setter: "high_risk",
       volleyball_outside: "high_risk",
       volleyball_libero: "high_risk",
+      // ⚠️ افزوده‌شده در Commit 19 (جدید): لانژ انفجاری/چرخش زانو حین حمله.
+      fencing: "high_risk",
     },
     reason: "پارگی مینیسک + Pivot Turn = گیر افتادن مفصل و ریسک قفل شدن زانو",
   },
@@ -213,6 +227,10 @@ const activePathologyMap = {
       volleyball_setter: "high_risk",
       volleyball_outside: "high_risk",
       volleyball_libero: "high_risk",
+      // ⚠️ افزوده‌شده در Commit 19 (جدید): تیک‌آف/فرود Split-leg و لانژ
+      // انفجاری، هر دو ریسک واقعی مچ‌پا.
+      long_jump: "high_risk",
+      fencing: "high_risk",
     },
   },
 };

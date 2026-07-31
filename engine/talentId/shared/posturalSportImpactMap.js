@@ -39,6 +39,9 @@ const posturalSportImpactMap = {
     weightlifting_olympic: { penalty: -20, reason: "اسکات و اسنچ نیازمند کنترل کمر" },
     diving: { penalty: -25, reason: "شیرجه با گودی کمر شدید = ریسک بالای Fracture" },
     figure_skating: { penalty: -20, reason: "اکستنشن‌های تکراری کمر" },
+    // ⚠️ دوکلیدی جدید Commit 19 — ادبیاتی/استنتاجی (نه از یک مطالعه‌ی
+    // خاص): آرک کمر در تکنیک فسبوری فلاپ حین عبور از میله.
+    high_jump: { penalty: -20, reason: "آرک کمر در تکنیک فسبوری فلاپ" },
   },
 
   scoliosis: {
@@ -48,6 +51,11 @@ const posturalSportImpactMap = {
     gymnastics: { penalty: -20, reason: "ریسک عوارض rotation" },
     swimming: { penalty: 0, beneficial: "always", reason: "شنا برای اسکولیوز درمانی است" },
     swimming_general: { penalty: 0, beneficial: "always", reason: "شنا برای اسکولیوز درمانی است" },
+    // ⚠️ دوکلیدی جدید Commit 19 — همگی ادبیاتی/استنتاجی (نه از یک مطالعه‌ی
+    // خاص)، هم‌مکانیزم کشتی (پیچش/بار نامتقارن ستون فقرات).
+    shot_put: { penalty: -20, reason: "استرس چرخشی تکنیک پرتاب" },
+    discus: { penalty: -20, reason: "تکنیک چرخش کامل، حتی چرخشی‌تر از پرتاب وزنه" },
+    fencing: { penalty: -20, reason: "بار نامتقارن حالت آماده‌باش یک‌طرفه (en garde)" },
   },
 
   genu_valgum: {
@@ -135,6 +143,12 @@ const posturalSportImpactMap = {
     // (بدون حمله بالای تور، طبق قانون FIVB).
     volleyball_outside: { penalty: -20, reason: "اسپک نیازمند retraction شانه" },
     volleyball_setter: { penalty: -20, reason: "ست‌زنی بالای سر نیازمند retraction شانه (خفیف‌تر از اسپک)" },
+    // ⚠️ دوکلیدی جدید Commit 19 — همگی ادبیاتی/استنتاجی (نه از یک مطالعه‌ی
+    // خاص)، هم‌مکانیزم غلبه‌ی عضلات کشنده‌ی جلوی بدن بدون کار کافی
+    // زنجیره‌ی مقابل (هم‌الگوی شناگران).
+    bodybuilding: { penalty: -20, reason: "«پوسچر بدنساز» — رشد نامتناسب سینه/جلوبازو بدون کار کافی زنجیره‌ی خلفی" },
+    climbing: { penalty: -20, reason: "غلبه‌ی عضلات کشنده (لت/دوسر)" },
+    archery: { penalty: -15, reason: "«archer's shoulder» — بار عدم‌تقارن دست کمان/دست دراو تکراری" },
   },
 };
 

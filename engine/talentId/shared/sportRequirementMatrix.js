@@ -2470,6 +2470,795 @@ const sportRequirementMatrix = {
       by_psychology: [],
     },
   },
+
+  // ═══════════════════════════════════════════════════════════════════════
+  // Commit 19 — آخرین ۱۲ رشته (طبق docs/TODO-wave-labeling-correction.md:
+  // ردیف‌های ۴۱-۵۲ جدول ۲۰.۶ سند). بعد از این Commit، sportRequirementMatrix
+  // دقیقاً ۵۲ رشته دارد. مثل Commit 17/18، سند فقط اسم/category/Wave داده،
+  // schema کامل از دانش استاندارد علوم ورزشی ساخته شد.
+  // ─── دسته‌ی الف: قدرتی/پرتابی ────────────────────────────────────────────
+  powerlifting: {
+    id: "powerlifting",
+    name_fa: "پاورلیفتینگ",
+    name_en: "Powerlifting",
+    category: "strength",
+    subcategory: "powerlifting",
+    is_position_specific: false,
+
+    anthropometric_bonuses: { ape_index_low: 15, cormic_high: 10 },
+    composition_bonuses: { smm_high: 20 },
+    biometric_bonuses: { handgrip_asymmetry_high: -10 },
+
+    performance_weights: {
+      handgrip: 0.35,
+      pushups: 0.3,
+      broad_jump: 0.2,
+      vertical_jump: 0.15,
+    },
+    critical_perf_tests: ["handgrip", "pushups"],
+
+    psych_requirements: {
+      teamwork_score: 1,
+      aggression_contact: 2,
+      focus_patience: 5,
+      pressure_tolerance: 5,
+      dynamic_activity: 1,
+      chaos_decision: 1,
+      resilience: 5,
+    },
+    trait_importance: {
+      pressure_tolerance: 2,
+      focus_patience: 2,
+      resilience: 1.5,
+      aggression_contact: 1,
+      teamwork_score: 0.5,
+      dynamic_activity: 0.5,
+      chaos_decision: 0.5,
+    },
+
+    // طبق ادبیات NSCA: بار نزدیک‌به‌بیشینه (near-1RM) برای نوجوانان دیرتر از
+    // تمرین تکنیکی/انفجاری وزنه‌برداری المپیک توصیه می‌شود (ریسک صفحه‌ی
+    // رشد) — به همین دلیل بالاتر از weightlifting_olympic (۱۲).
+    minimum_bio_age_recommended: 14,
+    is_recommended_early_specialization: false,
+    ltad_stage: "TrainingToTrain",
+
+    // کپی مستقیم از weightlifting_olympic (بار محوری مشابه/بیشتر روی ستون فقرات).
+    postural_contraindications: ["kyphosis", "hyperlordosis", "scoliosis"],
+    // ⭐ disc_herniation و severe_scoliosis از Commit 1 در activePathologyMap
+    // خفته بودند (کلید "powerlifting" از ابتدا موجود بود) — با ساختن این
+    // رشته فعال می‌شوند، نه اضافه‌ی تازه.
+    medical_contraindications: [
+      "active_disc_herniation",
+      "active_shoulder_impingement",
+      "active_severe_scoliosis_cobb_over_40",
+    ],
+
+    // ⭐ اطمینان قوی — مستند: weightlifting_olympic.similar_sports از
+    // Commit 1 «powerlifting» را در هر ۳ دسته دارد (خفته تا همین Commit).
+    // رابطه‌ی متقابل اینجا ثبت می‌شود.
+    similar_sports: {
+      by_anthropometry: ["weightlifting_olympic"],
+      by_performance: ["weightlifting_olympic"],
+      by_psychology: ["weightlifting_olympic"],
+    },
+  },
+
+  bodybuilding: {
+    id: "bodybuilding",
+    name_fa: "بادی‌بیلدینگ",
+    name_en: "Bodybuilding",
+    category: "strength",
+    subcategory: "bodybuilding",
+    is_position_specific: false,
+
+    anthropometric_bonuses: {},
+    composition_bonuses: { smm_high: 25, bf_very_low: 15, ffmi_athletic: 20 },
+    biometric_bonuses: {},
+
+    // ⚠️ فقط ۲ تست از ۱۰ تست موجود واقعاً پروکسی معنادار توده‌ی عضلانی‌اند
+    // (pushups/handgrip) — sprint/agility/beep_test/vertical_jump صادقانه
+    // حذف شدند (بدنسازی یک رشته‌ی داوری‌محور فیزیک است، نه عملکردی).
+    performance_weights: {
+      pushups: 0.5,
+      handgrip: 0.5,
+    },
+    critical_perf_tests: [],
+
+    psych_requirements: {
+      teamwork_score: 1,
+      aggression_contact: 1,
+      focus_patience: 5,
+      pressure_tolerance: 4,
+      dynamic_activity: 1,
+      chaos_decision: 1,
+      resilience: 4,
+    },
+    trait_importance: {
+      focus_patience: 2,
+      resilience: 1.5,
+      pressure_tolerance: 1,
+      teamwork_score: 0.5,
+      aggression_contact: 0.5,
+      dynamic_activity: 0.5,
+      chaos_decision: 0.5,
+    },
+
+    // طبق تصمیم تاییدشده‌ی Commit 19: رژیم مسابقه‌ای شدید و حجم تمرین
+    // بدنسازی نخبه برای نوجوانان نامناسب است — بالاتر از همه‌ی رشته‌های
+    // قدرتی دیگر این ماتریس.
+    minimum_bio_age_recommended: 16,
+    is_recommended_early_specialization: false,
+    ltad_stage: "TrainingToCompete",
+
+    // ⚠️ ادبیاتی/استنتاجی (نه از یک مطالعه‌ی خاص) — هم‌سطح wushu_sanda/
+    // gymnastics_artistic در Commit 17: «پوسچر بدنساز» (رشد نامتناسب سینه/
+    // پشت بدون کار کافی زنجیره‌ی خلفی) یک مشاهده‌ی رایج ادبیات فیتنس است.
+    postural_contraindications: ["rounded_shoulder"],
+    // ⚠️ تصمیم تاییدشده‌ی Commit 19: برخلاف powerlifting، بدنسازی معمولاً
+    // زیربیشینه (submaximal، حجم‌محور) است نه ۱RM — عمداً بدون
+    // disc_herniation، فقط shoulder_impingement (حجم بالای فشار سینه/شانه).
+    medical_contraindications: ["active_shoulder_impingement"],
+
+    // اطمینان متوسط-استنتاجی: اشتراک ساختار عضلانی/قدرت با powerlifting و
+    // weightlifting_olympic، نه سازوکار اجرایی یکسان (بدنسازی رقابت
+    // اجرایی-لحظه‌ای ندارد).
+    similar_sports: {
+      by_anthropometry: ["powerlifting", "weightlifting_olympic"],
+      by_performance: ["powerlifting"],
+      by_psychology: [],
+    },
+  },
+
+  shot_put: {
+    id: "shot_put",
+    name_fa: "پرتاب وزنه",
+    name_en: "Shot Put",
+    category: "record",
+    subcategory: "throws",
+    is_position_specific: false,
+
+    anthropometric_bonuses: {
+      tall_stature: { threshold_cm_male: 195, threshold_cm_female: 180, bonus: 15 },
+      ape_index_high: 15,
+    },
+    // bf_high طبق ادبیات دو‌ومیدانی پرتابی: برخلاف اکثر رشته‌های این ماتریس،
+    // توده‌ی کل بدن (شامل چربی) در پرتاب وزنه به ممنتوم پرتاب کمک می‌کند —
+    // پرتاب‌کنندگان نخبه معمولاً BMI/چربی بدن بالاتر از بقیه‌ی دومیدانی‌کاران دارند.
+    composition_bonuses: { smm_high: 20, bf_high: 15 },
+    biometric_bonuses: { bilateral_asymmetry_high: -15 },
+
+    performance_weights: {
+      wall_toss: 0.35,
+      vertical_jump: 0.25,
+      broad_jump: 0.2,
+      handgrip: 0.1,
+      pushups: 0.1,
+    },
+    critical_perf_tests: ["wall_toss", "vertical_jump"],
+
+    psych_requirements: {
+      teamwork_score: 1,
+      aggression_contact: 3,
+      focus_patience: 5,
+      pressure_tolerance: 5,
+      dynamic_activity: 2,
+      chaos_decision: 1,
+      resilience: 4,
+    },
+    trait_importance: {
+      pressure_tolerance: 2,
+      focus_patience: 1.5,
+      aggression_contact: 1,
+      resilience: 1,
+      teamwork_score: 0.5,
+      dynamic_activity: 1,
+      chaos_decision: 0.5,
+    },
+
+    minimum_bio_age_recommended: 12,
+    is_recommended_early_specialization: false,
+    ltad_stage: "TrainingToTrain",
+
+    // ⚠️ ادبیاتی/استنتاجی: استرس چرخشی/عدم‌تقارن تکنیک پرتاب روی ستون فقرات،
+    // هم‌مکانیزم کشتی (نه از یک مطالعه‌ی خاص).
+    postural_contraindications: ["scoliosis"],
+    medical_contraindications: ["active_shoulder_impingement"],
+
+    similar_sports: {
+      by_anthropometry: ["discus"],
+      by_performance: ["discus", "weightlifting_olympic"],
+      by_psychology: ["discus"],
+    },
+  },
+
+  discus: {
+    id: "discus",
+    name_fa: "پرتاب دیسک",
+    name_en: "Discus Throw",
+    category: "record",
+    subcategory: "throws",
+    is_position_specific: false,
+
+    anthropometric_bonuses: {
+      tall_stature: { threshold_cm_male: 195, threshold_cm_female: 180, bonus: 15 },
+      // ape_index_high حیاتی‌تر از پرتاب وزنه: شعاع رهاسازی طولانی‌تر با
+      // بازوی بلندتر = سرعت زاویه‌ای بیشتر، اصل بیومکانیکی مستند دیسک.
+      ape_index_high: 20,
+    },
+    composition_bonuses: { smm_high: 20, bf_high: 10 },
+    biometric_bonuses: { bilateral_asymmetry_high: -15 },
+
+    performance_weights: {
+      wall_toss: 0.3,
+      agility_5_10_5: 0.2,
+      vertical_jump: 0.2,
+      broad_jump: 0.15,
+      handgrip: 0.15,
+    },
+    critical_perf_tests: ["wall_toss", "agility_5_10_5"],
+
+    psych_requirements: {
+      teamwork_score: 1,
+      aggression_contact: 3,
+      focus_patience: 5,
+      pressure_tolerance: 5,
+      dynamic_activity: 2,
+      chaos_decision: 2,
+      resilience: 4,
+    },
+    trait_importance: {
+      pressure_tolerance: 2,
+      focus_patience: 1.5,
+      aggression_contact: 1,
+      resilience: 1,
+      teamwork_score: 0.5,
+      dynamic_activity: 1,
+      chaos_decision: 1,
+    },
+
+    minimum_bio_age_recommended: 12,
+    is_recommended_early_specialization: false,
+    ltad_stage: "TrainingToTrain",
+
+    // ⚠️ ادبیاتی/استنتاجی: تکنیک چرخش کامل، حتی از پرتاب وزنه چرخشی‌تر.
+    postural_contraindications: ["scoliosis"],
+    medical_contraindications: ["active_shoulder_impingement"],
+
+    similar_sports: {
+      by_anthropometry: ["shot_put"],
+      by_performance: ["shot_put", "weightlifting_olympic"],
+      by_psychology: ["shot_put"],
+    },
+  },
+
+  // ─── دسته‌ی ب: پرشی/آبی/فنی ──────────────────────────────────────────────
+  long_jump: {
+    id: "long_jump",
+    name_fa: "پرش طول",
+    name_en: "Long Jump",
+    category: "record",
+    subcategory: "jumps",
+    is_position_specific: false,
+
+    anthropometric_bonuses: { cormic_low: 10 },
+    composition_bonuses: { bf_very_low: 10 },
+    biometric_bonuses: { bilateral_asymmetry_high: -15 },
+
+    performance_weights: {
+      sprint_30m: 0.35,
+      broad_jump: 0.3,
+      vertical_jump: 0.2,
+      sprint_10m: 0.15,
+    },
+    critical_perf_tests: ["sprint_30m", "broad_jump"],
+
+    psych_requirements: {
+      teamwork_score: 1,
+      aggression_contact: 1,
+      focus_patience: 5,
+      pressure_tolerance: 5,
+      dynamic_activity: 3,
+      chaos_decision: 1,
+      resilience: 4,
+    },
+    trait_importance: {
+      pressure_tolerance: 2,
+      focus_patience: 1.5,
+      resilience: 1,
+      teamwork_score: 0.5,
+      aggression_contact: 0.5,
+      dynamic_activity: 1,
+      chaos_decision: 0.5,
+    },
+
+    minimum_bio_age_recommended: 10,
+    is_recommended_early_specialization: false,
+    ltad_stage: "LearningToTrain",
+
+    // ⭐ genu_valgum از Commit 1 خفته بود (posturalSportImpactMap، «فرود
+    // Split-leg»، -۲۵) — با ساختن این رشته فعال می‌شود. flat_foot جدید
+    // (انتقال نیروی ضعیف‌تر در ران‌آپ/تیک‌آف، هم‌مکانیزم sprint_100m).
+    postural_contraindications: ["genu_valgum", "flat_foot"],
+    medical_contraindications: ["active_ankle_sprain_grade_2_or_3"],
+
+    similar_sports: {
+      by_anthropometry: [],
+      by_performance: ["high_jump", "sprint_100m"],
+      by_psychology: [],
+    },
+  },
+
+  high_jump: {
+    id: "high_jump",
+    name_fa: "پرش ارتفاع",
+    name_en: "High Jump",
+    category: "record",
+    subcategory: "jumps",
+    is_position_specific: false,
+
+    anthropometric_bonuses: {
+      tall_stature: { threshold_cm_male: 190, threshold_cm_female: 175, bonus: 15 },
+      cormic_low: 10,
+    },
+    composition_bonuses: { bf_very_low: 10 },
+    biometric_bonuses: { balance_score_high: 10 },
+
+    performance_weights: {
+      vertical_jump: 0.35,
+      sit_and_reach: 0.2,
+      sprint_10m: 0.2,
+      broad_jump: 0.15,
+      sprint_30m: 0.1,
+    },
+    critical_perf_tests: ["vertical_jump", "sit_and_reach"],
+
+    psych_requirements: {
+      teamwork_score: 1,
+      aggression_contact: 1,
+      focus_patience: 5,
+      pressure_tolerance: 5,
+      dynamic_activity: 3,
+      chaos_decision: 1,
+      resilience: 4,
+    },
+    trait_importance: {
+      pressure_tolerance: 2,
+      focus_patience: 1.5,
+      resilience: 1,
+      teamwork_score: 0.5,
+      aggression_contact: 0.5,
+      dynamic_activity: 1,
+      chaos_decision: 0.5,
+    },
+
+    minimum_bio_age_recommended: 10,
+    is_recommended_early_specialization: false,
+    ltad_stage: "LearningToTrain",
+
+    // ⭐ genu_valgum از Commit 1 خفته بود («فرودهای مکرر»، -۳۰) — فعال
+    // می‌شود. hyperlordosis ⚠️ ادبیاتی/استنتاجی (نه مستند): آرک کمر در
+    // تکنیک فسبوری فلاپ حین عبور از میله.
+    postural_contraindications: ["genu_valgum", "hyperlordosis"],
+    // ⚠️ تصمیم تاییدشده‌ی Commit 19: عمداً بدون ankle_sprain — برخلاف بقیه‌ی
+    // رشته‌های پرشی، فرود فسبوری فلاپ روی پشت/شانه است (روی تشک)، نه روی پا.
+    medical_contraindications: [],
+
+    // اطمینان ضعیف-استنتاجی
+    similar_sports: {
+      by_anthropometry: ["volleyball_middle_blocker"],
+      by_performance: ["long_jump"],
+      by_psychology: [],
+    },
+  },
+
+  climbing: {
+    id: "climbing",
+    name_fa: "سنگ‌نوردی",
+    name_en: "Climbing",
+    category: "strength",
+    subcategory: "climbing",
+    is_position_specific: false,
+
+    // ape_index_high مستندترین فاکتور آنتروپومتریک کل ادبیات سنگ‌نوردی
+    // (دهانه‌ی دست/قد).
+    anthropometric_bonuses: { ape_index_high: 15 },
+    // عمداً بدون smm_high: نسبت قدرت-به-وزن محور است، توده‌ی اضافه مزیت
+    // نیست (برخلاف اکثر رشته‌های قدرتی این ماتریس).
+    composition_bonuses: { bf_very_low: 15 },
+    biometric_bonuses: { balance_score_high: 15 },
+
+    performance_weights: {
+      handgrip: 0.4,
+      sit_and_reach: 0.25,
+      agility_5_10_5: 0.2,
+      pushups: 0.15,
+    },
+    critical_perf_tests: ["handgrip", "sit_and_reach"],
+
+    psych_requirements: {
+      teamwork_score: 1,
+      aggression_contact: 1,
+      focus_patience: 5,
+      pressure_tolerance: 5,
+      dynamic_activity: 3,
+      // بالاترین chaos_decision بین رشته‌های فردی این ماتریس: حل مسئله‌ی
+      // آنی مسیر (route-reading) حین اجرا.
+      chaos_decision: 4,
+      resilience: 5,
+    },
+    trait_importance: {
+      chaos_decision: 2,
+      focus_patience: 1.5,
+      pressure_tolerance: 1.5,
+      resilience: 1.5,
+      teamwork_score: 0.5,
+      aggression_contact: 0.5,
+      dynamic_activity: 1,
+    },
+
+    // طبق ادبیات پزشکی سنگ‌نوردی: تمرین گریپ شدید (hangboarding) در نوجوانی
+    // ریسک آسیب صفحه‌ی رشد انگشتان دارد — بالاتر از رشته‌های پرشی این batch.
+    minimum_bio_age_recommended: 12,
+    is_recommended_early_specialization: false,
+    ltad_stage: "TrainingToTrain",
+
+    // ⚠️ ادبیاتی/استنتاجی: غلبه‌ی عضلات کشنده (لت/دوسر) بدون کار کافی
+    // زنجیره‌ی مقابل، هم‌مکانیزم شناگران (نه از یک مطالعه‌ی خاص).
+    postural_contraindications: ["rounded_shoulder"],
+    // ⭐ epilepsy_uncontrolled از Commit 1 خفته بود (critical_risk — ریسک
+    // ارتفاع حین تشنج) — فعال می‌شود.
+    medical_contraindications: ["epilepsy_uncontrolled", "active_shoulder_impingement"],
+
+    // اطمینان ضعیف-استنتاجی: تنها تست حیاتی مشترک (handgrip) با judo.
+    similar_sports: { by_anthropometry: [], by_performance: ["judo"], by_psychology: [] },
+  },
+
+  rowing: {
+    id: "rowing",
+    name_fa: "قایقرانی",
+    name_en: "Rowing",
+    category: "endurance",
+    subcategory: "rowing",
+    is_position_specific: false,
+
+    // tall_stature/ape_index_high هر دو در ادبیات استعدادیابی قایقرانی
+    // به‌همان اندازه‌ی بسکتبال/والیبال مستندند (اهرم پارو بلندتر).
+    anthropometric_bonuses: {
+      tall_stature: { threshold_cm_male: 190, threshold_cm_female: 178, bonus: 15 },
+      ape_index_high: 15,
+    },
+    composition_bonuses: { smm_high: 15, tbw_high: 10 },
+    biometric_bonuses: { resting_hr_low: 15 },
+
+    performance_weights: {
+      beep_test: 0.4,
+      pushups: 0.2,
+      handgrip: 0.15,
+      broad_jump: 0.15,
+      vertical_jump: 0.1,
+    },
+    critical_perf_tests: ["beep_test", "pushups"],
+
+    psych_requirements: {
+      // برخلاف شنا (فردی محض)، قایقرانی رقابتی اغلب قایق‌های تیمی (چهارنفره/
+      // هشت‌نفره) دارد — teamwork بالاتر از swimming_general.
+      teamwork_score: 3,
+      aggression_contact: 1,
+      focus_patience: 5,
+      pressure_tolerance: 4,
+      dynamic_activity: 3,
+      chaos_decision: 1,
+      // مستندترین ویژگی روان‌شناختی این رشته در ادبیات ورزشی: تحمل درد/
+      // استقامت ذهنی حین تلاش بیشینه‌ی طولانی.
+      resilience: 5,
+    },
+    trait_importance: {
+      resilience: 2,
+      focus_patience: 1.5,
+      teamwork_score: 1,
+      pressure_tolerance: 1,
+      aggression_contact: 0.5,
+      dynamic_activity: 1,
+      chaos_decision: 0.5,
+    },
+
+    // طبق طب ورزشی جوانان: بار ارگومتر/فنی زیر تحمیل تکراری در نوجوانی
+    // ریسک «کمر پاروزن» مستند دارد.
+    minimum_bio_age_recommended: 12,
+    is_recommended_early_specialization: false,
+    ltad_stage: "TrainingToTrain",
+
+    // flat_foot از Commit 1 خفته بود اما penalty=0 («بی‌اثر») — یک
+    // contraindication واقعی نیست، عمداً در این لیست نیامد.
+    postural_contraindications: [],
+    // ⚠️ جدید: «rower's back» (فتق دیسک از فلکشن تکراری تحت بار) در طب
+    // ورزشی قایقرانی مستند و شناخته‌شده است.
+    medical_contraindications: ["active_disc_herniation"],
+
+    // ⭐ اطمینان قوی — مستند: swimming_general.similar_sports از Commit 1
+    // «rowing» را در هر ۳ دسته دارد (خفته تا همین Commit). رابطه‌ی متقابل
+    // اینجا ثبت می‌شود، به‌علاوه‌ی cycling_road (که خودِ swimming_general
+    // در by_psychology کنار rowing دارد).
+    similar_sports: {
+      by_anthropometry: ["swimming_general"],
+      by_performance: ["swimming_general"],
+      by_psychology: ["swimming_general", "cycling_road"],
+    },
+  },
+
+  diving: {
+    id: "diving",
+    name_fa: "شیرجه",
+    name_en: "Diving",
+    category: "aesthetic",
+    subcategory: "diving",
+    is_position_specific: false,
+
+    // ⚠️ تصمیم تاییدشده (عیناً هم‌الگوی gymnastics_artistic در Commit 17):
+    // بدون بونوس مبتنی‌بر قد. برخلاف اکثر رشته‌های ماتریس، قد کوتاه‌تر در
+    // شیرجه (کنترل چرخش سریع‌تر) مزیت است، اما schema فعلی هیچ مکانیزم
+    // متقارنی برای «بونوس قد کوتاه» ندارد — طبق اصل «زیرساخت جدید بدون
+    // مبنا نساز»، بدون بونوس قد می‌ماند، نه مثبت نه منفی.
+    anthropometric_bonuses: {},
+    composition_bonuses: { smm_high: 10, bf_very_low: 10 },
+    biometric_bonuses: { balance_score_high: 10 },
+
+    performance_weights: {
+      vertical_jump: 0.35,
+      sit_and_reach: 0.3,
+      broad_jump: 0.2,
+      pushups: 0.15,
+    },
+    critical_perf_tests: ["vertical_jump", "sit_and_reach"],
+
+    psych_requirements: {
+      teamwork_score: 1,
+      aggression_contact: 1,
+      focus_patience: 5,
+      pressure_tolerance: 5,
+      dynamic_activity: 3,
+      chaos_decision: 1,
+      resilience: 5,
+    },
+    trait_importance: {
+      pressure_tolerance: 2,
+      focus_patience: 1.5,
+      resilience: 1.5,
+      teamwork_score: 0.5,
+      aggression_contact: 0.5,
+      dynamic_activity: 1,
+      chaos_decision: 0.5,
+    },
+
+    // هم‌الگوی swimming_general: رشته‌ی آبی کلاسیک تخصص زودرس.
+    minimum_bio_age_recommended: 8,
+    is_recommended_early_specialization: true,
+    ltad_stage: "FUNdamentals",
+
+    // ⭐ hyperlordosis از Commit 1 خفته بود («شیرجه با گودی کمر شدید = ریسک
+    // بالای Fracture»، -۲۵) — با ساختن این رشته عیناً فعال می‌شود.
+    postural_contraindications: ["hyperlordosis"],
+    // ⭐ epilepsy_uncontrolled از Commit 1 خفته بود (critical_risk) — فعال
+    // می‌شود. shoulder_impingement جدید (ورود دست‌محور به آب).
+    medical_contraindications: ["epilepsy_uncontrolled", "active_shoulder_impingement"],
+
+    // اطمینان قوی — استنتاجی: هر دو داوری‌محور/زیبایی‌شناختی، هر دو بدون
+    // بونوس قد، هر دو sit_and_reach-محور.
+    similar_sports: {
+      by_anthropometry: ["gymnastics_artistic"],
+      by_performance: ["gymnastics_artistic"],
+      by_psychology: ["gymnastics_artistic"],
+    },
+  },
+
+  // ─── دسته‌ی ج: دقتی/ذهنی/رزمی-تجهیزاتی ──────────────────────────────────
+  chess: {
+    id: "chess",
+    name_fa: "شطرنج",
+    name_en: "Chess",
+    // ⚠️ تصمیم تاییدشده‌ی Commit 19: هیچ‌کدام از ۸ category موجود واقعاً
+    // «ورزش ذهنی» را پوشش نمی‌دهد. به‌جای افزودن یک category تازه به enum
+    // (تغییر schema بزرگ‌تر)، نزدیک‌ترین برداشت مفهومی انتخاب شد: دقت ذهنی
+    // به‌جای دقت فیزیکی. اگر رشته‌های ذهنی بیشتری در آینده اضافه شوند،
+    // این تصمیم قابل بازبینی است.
+    category: "precision",
+    subcategory: "chess",
+    is_position_specific: false,
+
+    // تنها رشته‌ی کل ماتریس بدون هیچ بُعد فیزیکی — صادقانه کاملاً خالی،
+    // نه فراموشی.
+    anthropometric_bonuses: {},
+    composition_bonuses: {},
+    biometric_bonuses: {},
+
+    // ⚠️ طبق تصمیم تاییدشده‌ی Commit 19: تنها رشته‌ی allowlist شده در
+    // EMPTY_PERFORMANCE_WEIGHTS_ALLOWLIST (sportRequirementSchema.js) —
+    // هیچ‌کدام از ۱۰ تست فیزیکی موجود ربطی به شطرنج ندارند؛ اجبار به جمع=۱.۰
+    // یعنی وزن‌دهی ساختگی به تست‌های کاملاً بی‌ربط. file7 این حالت را از
+    // قبل درست مدیریت می‌کند: حلقه‌ی روی performance_weights خالی هیچ‌وقت
+        // اجرا نمی‌شود → final_perf_score همیشه دقیقاً ۱۰۰ (خنثی) می‌ماند،
+    // بدون NaN/throw — دقیقاً همان مسیر کدی‌ای که تست موجود «بدون هیچ
+    // داده‌ی عملکردی» از قبل پوشش می‌دهد.
+    performance_weights: {},
+    critical_perf_tests: [],
+
+    psych_requirements: {
+      teamwork_score: 1,
+      aggression_contact: 1,
+      focus_patience: 5,
+      pressure_tolerance: 5,
+      // پایین‌ترین dynamic_activity ممکن (هم‌تراز shooting_target).
+      dynamic_activity: 1,
+      // ⚠️ تصمیم تاییدشده‌ی Commit 19: برخلاف shooting_target/archery
+      // (اجرای تکنیک ثابت روی هدف ساکن)، شطرنج واکنش بلادرنگ به یک حریف
+      // پویا و غیرقابل‌پیش‌بینی است — بالاترین chaos_decision ممکن.
+      chaos_decision: 5,
+      resilience: 5,
+    },
+    trait_importance: {
+      focus_patience: 2,
+      chaos_decision: 2,
+      pressure_tolerance: 2,
+      resilience: 1.5,
+      teamwork_score: 0.3,
+      aggression_contact: 0.3,
+      dynamic_activity: 0.3,
+    },
+
+    // بدون ریسک آسیب فیزیکی، پیشکسوتی کودک (chess prodigy) در ادبیات
+    // شطرنج کاملاً رایج و مستند است.
+    minimum_bio_age_recommended: 5,
+    is_recommended_early_specialization: true,
+    ltad_stage: "FUNdamentals",
+
+    // هیچ وضعیت پوسچرالی عملکرد شطرنج را کم نمی‌کند — صادقانه خالی.
+    postural_contraindications: [],
+    // خالی: هر ۳ ارجاع خفته‌ی Commit 1 (disc_herniation/meniscus_tear/
+    // cardiovascular_disease.always_safe) همگی «safe» بودند، نه پرخطر —
+    // این تأیید صحت طراحی است، نه یک گپ.
+    medical_contraindications: [],
+
+    // ⚠️ تصمیم تاییدشده‌ی Commit 19: کاملاً خالی، عمدی. حتی نزدیک‌ترین
+    // رشته از نظر پروفایل روانی (shooting_target: هر دو focus/pressure=۵)
+    // در chaos_decision ۴ واحد فاصله دارد (شطرنج=۵ در برابر تیراندازی=۱) —
+    // افزودن این ارتباط گمراه‌کننده بود.
+    similar_sports: { by_anthropometry: [], by_performance: [], by_psychology: [] },
+  },
+
+  archery: {
+    id: "archery",
+    name_fa: "تیر و کمان",
+    name_en: "Archery",
+    category: "precision",
+    subcategory: "archery",
+    is_position_specific: false,
+
+    // ape_index_high: طول دراو (draw length) در عمل با دهانه‌ی دست تنظیم
+    // می‌شود — واقعیت تجهیزاتی شناخته‌شده، نه حدس.
+    anthropometric_bonuses: { ape_index_high: 10 },
+    composition_bonuses: {},
+    // ⚠️ resting_hr_low بازاستفاده‌ی آگاهانه از مکانیزم shooting_target
+    // (Commit 17): کمانداران هم بین دو ضربان قلب رها می‌کنند، حتی
+    // مستقیم‌تر از تیراندازی (اصل تدریسی رایج در مربیگری کمانداری).
+    biometric_bonuses: { resting_hr_low: 15, balance_score_high: 10 },
+
+    // ⚠️ برخلاف shooting_target (که هیچ تستش واقعاً حیاتی نیست)، کشیدن و
+    // نگه‌داشتن کمان در لنگر کامل واقعاً به قدرت/استقامت بالاتنه نیاز
+    // دارد — تمایز فیزیکی واقعی از تیراندازی.
+    performance_weights: {
+      handgrip: 0.4,
+      pushups: 0.35,
+      sit_and_reach: 0.25,
+    },
+    critical_perf_tests: ["handgrip"],
+
+    psych_requirements: {
+      teamwork_score: 1,
+      aggression_contact: 1,
+      focus_patience: 5,
+      pressure_tolerance: 5,
+      dynamic_activity: 1,
+      // برخلاف شطرنج: اجرای تکنیک ثابت روی هدف ساکن، نه واکنش به حریف.
+      chaos_decision: 1,
+      resilience: 4,
+    },
+    trait_importance: {
+      focus_patience: 2,
+      pressure_tolerance: 2,
+      resilience: 1,
+      teamwork_score: 0.5,
+      aggression_contact: 0.5,
+      dynamic_activity: 0.5,
+      chaos_decision: 0.5,
+    },
+
+    minimum_bio_age_recommended: 10,
+    is_recommended_early_specialization: false,
+    ltad_stage: "LearningToTrain",
+
+    // ⚠️ ادبیاتی/استنتاجی (نه از یک مطالعه‌ی خاص): «archer's shoulder» —
+    // بار عدم‌تقارن دست کمان/دست دراو تکراری، مفهوم شناخته‌شده در طب
+    // ورزشی کمانداری.
+    postural_contraindications: ["rounded_shoulder"],
+    medical_contraindications: ["active_shoulder_impingement"],
+
+    // اطمینان قوی-استنتاجی (۲ دسته): مکانیزم فیزیولوژیک مشترک
+    // (resting_hr_low) + پروفایل روانی تقریباً یکسان با shooting_target.
+    similar_sports: {
+      by_anthropometry: ["shooting_target"],
+      by_performance: [],
+      by_psychology: ["shooting_target"],
+    },
+  },
+
+  fencing: {
+    id: "fencing",
+    name_fa: "شمشیربازی",
+    name_en: "Fencing",
+    category: "combat",
+    subcategory: "fencing",
+    is_position_specific: false,
+
+    // ape_index_high هم‌الگوی دقیق boxing: برد اسلحه = برد بازو، اصل
+    // تاکتیکی محوری و مستند شمشیربازی.
+    anthropometric_bonuses: { ape_index_high: 15, cormic_low: 10 },
+    composition_bonuses: { bf_very_low: 10 },
+    // ⚠️ تصمیم تاییدشده‌ی Commit 19: برخلاف بقیه‌ی رشته‌های این ماتریس،
+    // bilateral_asymmetry_high عمداً اینجا نیامد — شمشیربازی ذاتاً یک‌طرفه
+    // است (همیشه یک دست/پای پیشرو)، پس عدم‌تقارن یک تطبیق طبیعی است، نه
+    // لزوماً یک ریسک قابل‌سنجش با همان کلید بقیه‌ی رشته‌ها.
+    biometric_bonuses: {},
+
+    performance_weights: {
+      agility_5_10_5: 0.35,
+      sprint_10m: 0.25,
+      broad_jump: 0.2,
+      handgrip: 0.1,
+      beep_test: 0.1,
+    },
+    critical_perf_tests: ["agility_5_10_5", "sprint_10m"],
+
+    psych_requirements: {
+      teamwork_score: 1,
+      // پایین‌تر از بوکس (۵): بدون تماس بدنی، فقط تماس سلاح — تمایز واقعی
+      // قانونی بین این دو رشته‌ی رزمی.
+      aggression_contact: 3,
+      focus_patience: 5,
+      pressure_tolerance: 5,
+      dynamic_activity: 5,
+      // «شطرنج فیزیکی»: خواندن/فریب‌دادن حریف در زمان واقعی، هم‌تراز چس/بوکس.
+      chaos_decision: 5,
+      resilience: 5,
+    },
+    trait_importance: {
+      chaos_decision: 2,
+      pressure_tolerance: 1.5,
+      focus_patience: 1.5,
+      resilience: 1,
+      aggression_contact: 1,
+      teamwork_score: 0.5,
+      dynamic_activity: 1,
+    },
+
+    minimum_bio_age_recommended: 10,
+    is_recommended_early_specialization: false,
+    ltad_stage: "TrainingToTrain",
+
+    // ⚠️ ادبیاتی/استنتاجی (نه از یک مطالعه‌ی خاص): بار نامتقارن حالت
+    // آماده‌باش یک‌طرفه (en garde) روی ستون فقرات، هم‌مکانیزم کشتی —
+    // «fencer's spine» در طب ورزشی نوجوانان شمشیربازی شناخته‌شده است.
+    postural_contraindications: ["scoliosis"],
+    medical_contraindications: ["active_ankle_sprain_grade_2_or_3", "active_meniscus_tear"],
+
+    // اطمینان متوسط-استنتاجی: برد اسلحه/بازو مشترک با boxing (anthropometry+
+    // psychology)، اتکای مشترک به agility_5_10_5 با taekwondo (performance).
+    similar_sports: {
+      by_anthropometry: ["boxing"],
+      by_performance: ["taekwondo"],
+      by_psychology: ["boxing"],
+    },
+  },
 };
 
 function getSportEntry(id) {
