@@ -94,7 +94,7 @@ function assertClose(actual, expected, tolerance, message) {
   });
 
   console.log("\n[calculatePsychScores — orchestrator]");
-  check("همیشه دقیقاً ۵ رشته در خروجی", () => {
+  check("همیشه به‌تعداد کل sportRequirementMatrix در خروجی", () => {
     const psychProfile = {
       teamwork_score: 3,
       aggression_contact: 3,
@@ -106,7 +106,8 @@ function assertClose(actual, expected, tolerance, message) {
       explicit_interests: ["wrestling_freestyle"],
     };
     const scores = calculatePsychScores(sportRequirementMatrix, psychProfile);
-    assert(Object.keys(scores).length === 5, `انتظار ۵ رشته، گرفتیم ${Object.keys(scores).length}`);
+    const expectedCount = Object.keys(sportRequirementMatrix).length;
+    assert(Object.keys(scores).length === expectedCount, `انتظار ${expectedCount} رشته، گرفتیم ${Object.keys(scores).length}`);
     const wrestlingResult = scores.wrestling_freestyle;
     assert(
       wrestlingResult.drivers.find((d) => d.driver_id === "interest.explicit_bonus"),

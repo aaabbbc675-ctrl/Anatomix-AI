@@ -65,9 +65,17 @@ function assertThrowsWithCode(fn, expectedCode, description) {
   });
 
   console.log("\n[پوشش صادقانه — wrestling_freestyle و hamstring_short]");
-  check("hamstring_short با هر severity → هیچ adjustment ای برای هیچ‌کدام از ۵ رشته", () => {
+  check("hamstring_short → فقط taekwondo (Commit 17) پوشش دارد، نه ۵ رشته‌ی اصلی Commit 1", () => {
+    // ⚠️ به‌روزرسانی Commit 17: romSportImpactMap.hamstring_short از قبل
+    // (Commit 7) کلید "taekwondo" را داشت (dormant، چون taekwondo ساخته
+    // نشده بود). با ساخته‌شدن taekwondo در Commit 17، این ارتباط فعال شد —
+    // یافته‌ی مثبت، نه رگرسیون.
     const result = computeRomAdjustments({ hamstring_short: "severe_short" }, false, sportRequirementMatrix);
-    assert(Object.keys(result.adjustments_by_sport).length === 0, "نباید هیچ adjustment ای وجود داشته باشد");
+    assert(Object.keys(result.adjustments_by_sport).length === 1, "فقط یک رشته باید adjustment داشته باشد");
+    assert(result.adjustments_by_sport.taekwondo !== undefined, "taekwondo باید تنها رشته‌ی متأثر باشد");
+    for (const sportId of ["soccer_striker", "wrestling_freestyle", "volleyball_middle_blocker", "swimming_general", "weightlifting_olympic"]) {
+      assert(result.adjustments_by_sport[sportId] === undefined, `${sportId} نباید تحت تأثیر hamstring_short باشد`);
+    }
   });
 
   check("wrestling_freestyle در هیچ deficit ای پوشش ندارد (حتی با همه‌ی deficitها هم‌زمان)", () => {

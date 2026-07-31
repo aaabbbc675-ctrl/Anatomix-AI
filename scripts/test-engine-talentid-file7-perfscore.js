@@ -108,10 +108,11 @@ function baseIntake(overrides = {}) {
   });
 
   console.log("\n[calculatePerfScores — orchestrator]");
-  check("همیشه دقیقاً ۵ رشته در خروجی — هیچ‌کدام حذف نمی‌شود", () => {
+  check("همیشه به‌تعداد کل sportRequirementMatrix در خروجی — هیچ‌کدام حذف نمی‌شود", () => {
     const intake = baseIntake({ performance: { sprint_10m_sec: 1.9, vertical_jump_cm: 45 } });
     const scores = calculatePerfScores(sportRequirementMatrix, intake, 10.5);
-    assert(Object.keys(scores).length === 5, `انتظار ۵ رشته، گرفتیم ${Object.keys(scores).length}`);
+    const expectedCount = Object.keys(sportRequirementMatrix).length;
+    assert(Object.keys(scores).length === expectedCount, `انتظار ${expectedCount} رشته، گرفتیم ${Object.keys(scores).length}`);
     for (const sportId of Object.keys(sportRequirementMatrix)) {
       assert(scores[sportId] !== undefined, `${sportId} نباید از خروجی حذف شود`);
       assert(Number.isFinite(scores[sportId].final_perf_score), `${sportId}: final_perf_score باید محدود باشد`);

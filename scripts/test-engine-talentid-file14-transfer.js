@@ -44,27 +44,41 @@ function assert(condition, message) {
     };
   }
 
-  console.log("\n[پوشش صادقانه‌ی sportSimilarityGraph — فقط ۲ رابطه‌ی واقعی بین ۵ رشته]");
-  check("wrestling_freestyle.transfer_potential = فقط weightlifting_olympic با ۰.۶ (۱ دسته از دید wrestling)", () => {
+  console.log("\n[پوشش sportSimilarityGraph — به‌روزشده پس از Commit 17 (۲۹ رشته)]");
+  // ⚠️ به‌روزرسانی Commit 17: sportSimilarityGraph.js از حالت دستی‌نوشته
+  // (۵ رشته) به محاسبه‌ی برنامه‌ای از similar_sports کل matrix تغییر کرد.
+  // چند رابطه‌ی قبلاً dormant (چون رشته‌ی هدف ساخته نشده بود) حالا فعال
+  // شده‌اند — این‌ها یافته‌ی مثبت‌اند، نه رگرسیون؛ رجوع کنید به تحلیل
+  // Commit 17 در تاریخچه‌ی گفتگو.
+  check("wrestling_freestyle.transfer_potential حالا شامل judo(۰.۷۵، ۲ دسته) هم هست، علاوه بر weightlifting_olympic(۰.۶) و boxing(۰.۶)", () => {
     const tp = sportSimilarityGraph.wrestling_freestyle.transfer_potential;
-    assert(Object.keys(tp).length === 1, "باید دقیقاً ۱ مورد داشته باشد");
-    assert(tp.weightlifting_olympic === 0.6, `انتظار ۰.۶، گرفتیم ${tp.weightlifting_olympic}`);
+    assert(Object.keys(tp).length === 3, `انتظار ۳ مورد، گرفتیم ${Object.keys(tp).length}`);
+    assert(tp.judo === 0.75, `judo: انتظار ۰.۷۵، گرفتیم ${tp.judo}`);
+    assert(tp.weightlifting_olympic === 0.6, `weightlifting_olympic: انتظار ۰.۶، گرفتیم ${tp.weightlifting_olympic}`);
+    assert(tp.boxing === 0.6, `boxing: انتظار ۰.۶، گرفتیم ${tp.boxing}`);
   });
-  check("weightlifting_olympic.transfer_potential = فقط wrestling_freestyle با ۰.۷۵ (۲ دسته از دید weightlifting، نامتقارن)", () => {
+  check("weightlifting_olympic.transfer_potential بدون تغییر: فقط wrestling_freestyle با ۰.۷۵ (هیچ‌کدام از ۲۴ رشته‌ی جدید به آن ارجاع نمی‌دهند)", () => {
     const tp = sportSimilarityGraph.weightlifting_olympic.transfer_potential;
     assert(Object.keys(tp).length === 1, "باید دقیقاً ۱ مورد داشته باشد");
     assert(tp.wrestling_freestyle === 0.75, `انتظار ۰.۷۵، گرفتیم ${tp.wrestling_freestyle}`);
   });
-  check("volleyball_middle_blocker.transfer_potential = فقط swimming_general با ۰.۶ (یک‌طرفه)", () => {
+  check("volleyball_middle_blocker.transfer_potential حالا شامل gymnastics_artistic(۰.۶) هم هست، علاوه بر swimming_general(۰.۶)", () => {
     const tp = sportSimilarityGraph.volleyball_middle_blocker.transfer_potential;
-    assert(Object.keys(tp).length === 1, "باید دقیقاً ۱ مورد داشته باشد");
+    assert(Object.keys(tp).length === 2, `انتظار ۲ مورد، گرفتیم ${Object.keys(tp).length}`);
     assert(tp.swimming_general === 0.6, `انتظار ۰.۶، گرفتیم ${tp.swimming_general}`);
+    assert(tp.gymnastics_artistic === 0.6, `انتظار ۰.۶، گرفتیم ${tp.gymnastics_artistic}`);
   });
-  check("swimming_general.transfer_potential کاملاً خالی است (بدون رابطه‌ی معکوس به والیبال)", () => {
-    assert(Object.keys(sportSimilarityGraph.swimming_general.transfer_potential).length === 0, "باید خالی باشد");
+  check("swimming_general.transfer_potential دیگر خالی نیست: حالا cycling_road(۰.۶) دارد (رابطه‌ی از قبل موجود، تازه‌فعال‌شده)", () => {
+    const tp = sportSimilarityGraph.swimming_general.transfer_potential;
+    assert(Object.keys(tp).length === 1, `انتظار ۱ مورد، گرفتیم ${Object.keys(tp).length}`);
+    assert(tp.cycling_road === 0.6, `انتظار ۰.۶، گرفتیم ${tp.cycling_road}`);
   });
-  check("soccer_striker.transfer_potential کاملاً خالی است (هیچ رابطه‌ای با ۴ رشته‌ی دیگر ندارد)", () => {
-    assert(Object.keys(sportSimilarityGraph.soccer_striker.transfer_potential).length === 0, "باید خالی باشد");
+  check("soccer_striker.transfer_potential دیگر خالی نیست: حالا sprint_100m/boxing/handball_pivot دارد (روابط از قبل موجود در similar_sports خودش، تا Commit 17 dormant بودند)", () => {
+    const tp = sportSimilarityGraph.soccer_striker.transfer_potential;
+    assert(Object.keys(tp).length === 3, `انتظار ۳ مورد، گرفتیم ${Object.keys(tp).length}`);
+    assert(tp.sprint_100m === 0.6, `sprint_100m: انتظار ۰.۶، گرفتیم ${tp.sprint_100m}`);
+    assert(tp.boxing === 0.6, `boxing: انتظار ۰.۶، گرفتیم ${tp.boxing}`);
+    assert(tp.handball_pivot === 0.6, `handball_pivot: انتظار ۰.۶، گرفتیم ${tp.handball_pivot}`);
   });
 
   console.log("\n[suggestTalentTransfers — شرط‌های رد پیشنهاد]");

@@ -90,8 +90,25 @@ function assertThrowsWithCode(fn, expectedCode, description) {
     );
   });
 
-  console.log("\n[calculateBioBanding — orchestrator با ۵ رشته‌ی واقعی matrix]");
-  check("early_maturer: فقط رشته‌های power (weightlifting_olympic/wrestling_freestyle/volleyball_middle_blocker/soccer_striker) -۱۰٪ می‌گیرند، swimming_general بدون تغییر", () => {
+  console.log("\n[POWER_SPORTS — به‌روزرسانی Commit 17: ۱۰ رشته‌ی جدید اضافه شدند]");
+  check("۶ رشته با شواهد مستقیم (critical_perf_tests انفجاری) → isPowerSport=true", () => {
+    for (const sportId of ["judo", "wrestling_greco", "sprint_100m", "sprint_200m", "handball_back", "handball_pivot"]) {
+      assert(POWER_SPORTS.has(sportId), `${sportId} باید در POWER_SPORTS باشد`);
+    }
+  });
+  check("۴ رشته با شواهد ادبیاتی (critical_perf_tests مستقیماً انفجاری نیستند) → isPowerSport=true", () => {
+    for (const sportId of ["boxing", "MMA", "karate", "wushu_sanda"]) {
+      assert(POWER_SPORTS.has(sportId), `${sportId} باید در POWER_SPORTS باشد`);
+    }
+  });
+  check("رشته‌های صریحاً بازبینی‌نشده (طبق docs/TODO-power-sports-wave2.md) هنوز پیش‌فرض non-power دارند", () => {
+    for (const sportId of ["shooting_target", "cycling_road", "marathon", "taekwondo"]) {
+      assert(!POWER_SPORTS.has(sportId), `${sportId} نباید (هنوز) در POWER_SPORTS باشد`);
+    }
+  });
+
+  console.log("\n[calculateBioBanding — orchestrator با کل sportRequirementMatrix]");
+  check("early_maturer: فقط رشته‌های power (شامل ۱۰ رشته‌ی جدید Commit 17) -۱۰٪ می‌گیرند، swimming_general بدون تغییر", () => {
     const { bio, perf, psych } = baseScores();
     const results = calculateBioBanding(sportRequirementMatrix, bio, perf, psych, { maturity_type: "early_maturer" });
 
@@ -145,7 +162,7 @@ function assertThrowsWithCode(fn, expectedCode, description) {
   });
 
   console.log("\n[═══ REGRESSION GUARD: هرگز حذف نشو — این بخش را حذف نکنید ═══]");
-  check("برای هر ۴ maturity_type، calculateBioBanding همیشه دقیقاً ۵ رشته با factor معتبر برمی‌گرداند", () => {
+  check("برای هر ۴ maturity_type، calculateBioBanding همیشه به‌تعداد کل matrix رشته با factor معتبر برمی‌گرداند", () => {
     const validFactors = new Set([0.9, 1.0, 1.15]);
     const maturityTypes = ["early_maturer", "late_maturer", "on_time_maturer", "unknown"];
     let checkedCount = 0;
@@ -166,7 +183,7 @@ function assertThrowsWithCode(fn, expectedCode, description) {
         );
       }
     }
-    assert(checkedCount === maturityTypes.length * 5, "تعداد چک‌ها نادرست است");
+    assert(checkedCount === maturityTypes.length * Object.keys(sportRequirementMatrix).length, "تعداد چک‌ها نادرست است");
     console.log(`     (${checkedCount} ترکیب maturity_type×sport چک شد)`);
   });
 

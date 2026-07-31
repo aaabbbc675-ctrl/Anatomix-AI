@@ -101,7 +101,7 @@ function assert(condition, message) {
   });
 
   console.log("\n[═══ REGRESSION GUARD: هرگز حذف نشو — این بخش را حذف نکنید ═══]");
-  check("برای هر پاتولوژی در activePathologyMap به‌تنهایی، calculateMedicalHolds همیشه دقیقاً ۵ رشته با status معتبر برمی‌گرداند", () => {
+  check("برای هر پاتولوژی در activePathologyMap به‌تنهایی، calculateMedicalHolds همیشه به‌تعداد کل matrix رشته با status معتبر برمی‌گرداند", () => {
     const validStatuses = ["clear", "medical_hold", "clearance_obtained"];
     let checkedCount = 0;
     for (const pathologyName of Object.keys(activePathologyMap)) {
@@ -120,7 +120,10 @@ function assert(condition, message) {
         );
       }
     }
-    assert(checkedCount === Object.keys(activePathologyMap).length * 5, "تعداد چک‌ها نادرست است");
+    assert(
+      checkedCount === Object.keys(activePathologyMap).length * Object.keys(sportRequirementMatrix).length,
+      "تعداد چک‌ها نادرست است"
+    );
     console.log(`     (${checkedCount} ترکیب pathology×sport چک شد)`);
   });
 

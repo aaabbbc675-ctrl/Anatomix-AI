@@ -45,13 +45,16 @@ const EXPECTED_IDS = [
   );
   const { validateSportEntry } = await import("../engine/talentId/shared/sportRequirementSchema.js");
 
-  console.log("\n[۵ رشته‌ی Wave 1 اولیه]");
-  check(`دقیقاً ۵ رشته seed شده (${EXPECTED_IDS.join(", ")})`, () => {
-    const keys = Object.keys(sportRequirementMatrix).sort();
-    assert(
-      JSON.stringify(keys) === JSON.stringify([...EXPECTED_IDS].sort()),
-      `کلیدهای فعلی: ${keys.join(", ")}`
-    );
+  console.log("\n[۵ رشته‌ی اولیه‌ی Commit 1]");
+  // ⚠️ طبق docs/TODO-wave-labeling-correction.md: این تست دیگر «دقیقاً ۵
+  // رشته» را چک نمی‌کند — از Commit 17 به بعد، sportRequirementMatrix رشد
+  // می‌کند (۲۹ بعد از Commit 17، بیشتر بعد از Commitهای بعدی). این تست فقط
+  // تأیید می‌کند ۵ رشته‌ی اولیه‌ی Commit 1 همچنان به‌عنوان زیرمجموعه حاضرند.
+  check(`۵ رشته‌ی اولیه‌ی Commit 1 همچنان زیرمجموعه‌ی matrix هستند (${EXPECTED_IDS.join(", ")})`, () => {
+    const keys = new Set(Object.keys(sportRequirementMatrix));
+    for (const id of EXPECTED_IDS) {
+      assert(keys.has(id), `"${id}" باید در matrix باشد`);
+    }
   });
 
   for (const sportId of EXPECTED_IDS) {

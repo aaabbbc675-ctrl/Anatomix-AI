@@ -1,71 +1,88 @@
 // گراف شباهت رشته‌ها برای Talent Transfer، طبق بخش ۱۵.۲ سند معماری.
 //
-// ⚠️ similar_by_anthropometry/performance/psychology هر رشته عیناً از فیلد
-// similar_sports همان رشته در sportRequirementMatrix.js (Commit 1، بخش ۲۰.۴
-// سند) کپی شده — نه داده‌ی جدید. شامل رشته‌های خارج از ۵ رشته‌ی seed‌شده هم
-// هست (مثلاً judo، handball) چون این لیست‌ها توصیفی/مستندسازی هستند، برای
-// آمادگی Wave 2-3 (Commit 17-19)، نه فقط برای محاسبه‌ی همین Commit.
+// ⚠️ تغییر معماری در Commit 17 (نه یک عدد جدید — همان قاعده‌ی تاییدشده‌ی
+// Commit 14 باقی می‌ماند، فقط مکانیزم ساختش عوض شده): تا Commit 14/16،
+// این فایل یک آبجکت دستی‌نوشته بود (۵ رشته، قابل مدیریت با دست). با اضافه
+// شدن ۲۴ رشته در Commit 17 (جمعاً ۲۹)، نوشتن دستی یعنی رونویسی حداکثر ۸۷
+// ارجاع (۲۹ رشته × ۳ دسته) با ریسک واقعی خطای انسانی — دقیقاً همان نوع
+// خطایی که در جدول‌های خلاصه‌ی این Commit چندبار با دقت گرفتیم (مثل
+// اصلاح skeliac_index). به همین دلیل این فایل حالا از similar_sports هر
+// رشته در sportRequirementMatrix.js (منبع واحد حقیقت) به‌صورت برنامه‌ای
+// محاسبه می‌شود — قاعده‌ی عددی («۳ دسته→۰.۹۰، ۲ دسته→۰.۷۵، ۱ دسته→۰.۶۰»)
+// دقیقاً همان چیزی است که در Commit 14 تأیید شد، رجوع کنید به
+// docs/TODO-transfer-potential-formula.md.
 //
-// ⚠️ transfer_potential برخلاف بالا، **محدود به ۵ رشته‌ی seed‌شده‌ی فعلی**
-// است — چون این تنها لایه‌ای است که واقعاً توسط file14 مصرف می‌شود
-// (پیشنهاد دادن رشته‌ای که هیچ MatchReport ای برایش نداریم بی‌فایده است).
-// طبق تصمیم تاییدشده‌ی Commit 14: عدد از تعداد دسته‌ی هم‌پوشان (نه فرمول
-// علمی — سند فرمولی نداده، فقط نمونه‌ی عددی نمادین مثل بخش ۱۴.۵) به‌صورت
-// جهت‌دار (از دید خودِ رشته‌ی مبدأ) ساخته شده: ۳ دسته→۰.۹۰، ۲ دسته→۰.۷۵،
-// ۱ دسته→۰.۶۰. رجوع کنید به docs/TODO-transfer-potential-formula.md.
+// transfer_potential فقط شامل رشته‌هایی می‌شود که واقعاً در sportRequirementMatrix
+// ساخته شده‌اند (پیشنهاد دادن رشته‌ای که هیچ MatchReport ای برایش نداریم
+// بی‌فایده است) — دقیقاً همان محدودیت تاییدشده‌ی Commit 14.
 //
-// ⚠️ بررسی صادقانه‌ی داده‌ی واقعی بین ۵ رشته‌ی خودمان (نه نمونه‌ی سند که
-// rowing/basketball_forward ندارد): فقط دو رابطه‌ی واقعی وجود دارد —
-// wrestling_freestyle↔weightlifting_olympic (هر دو جهت، اما نامتقارن: از
-// دید wrestling فقط ۱ دسته «anthropometry»، از دید weightlifting ۲ دسته
-// «anthropometry+psychology»، چون similar_sports هر رشته مستقل از دیگری
-// نوشته شده) و volleyball_middle_blocker→swimming_general (فقط یک‌طرفه —
-// "swimming" در لیست والیبال هست، اما swimming_general هیچ ارجاعی به
-// والیبال ندارد). soccer_striker هیچ رابطه‌ای با ۴ رشته‌ی دیگر ندارد —
-// transfer_potential آن عمداً خالی است، نه حدس زده شده.
-const sportSimilarityGraph = {
-  soccer_striker: {
-    similar_by_anthropometry: ["handball", "basketball_forward"],
-    similar_by_performance: ["sprint_100m", "rugby_center"],
-    similar_by_psychology: ["boxing", "handball_pivot"],
-    transfer_potential: {},
-  },
+// ⚠️ دوکلیدی (طبق قرارداد Commit 5/6/11): چند رشته‌ی موجود از قبل به
+// sport-id عمومی سند اشاره کرده بودند که با id خاص matrix ما یکی است —
+// "swimming"→swimming_general (در volleyball_middle_blocker، از Commit 1)
+// و "gymnastics"→gymnastics_artistic (در volleyball_middle_blocker، از
+// Commit 1 — تا Commit 17 که gymnastics_artistic ساخته شد، این ارجاع
+// خاموش/بی‌اثر بود). هیچ alias دیگری اضافه نشد — "handball" عمداً alias
+// نشد چون بین ۴ پست هندبال ما مبهم است (کدام پست؟ حدس زدن ممنوع).
+import { sportRequirementMatrix } from "./sportRequirementMatrix.js";
 
-  wrestling_freestyle: {
-    similar_by_anthropometry: ["judo", "weightlifting_olympic"],
-    similar_by_performance: ["judo"],
-    similar_by_psychology: ["boxing"],
-    // weightlifting_olympic فقط در similar_by_anthropometry آمده (۱ دسته از دید wrestling).
-    transfer_potential: { weightlifting_olympic: 0.6 },
-  },
-
-  volleyball_middle_blocker: {
-    similar_by_anthropometry: ["basketball_center", "high_jump", "swimming"],
-    similar_by_performance: ["basketball", "handball", "high_jump"],
-    similar_by_psychology: ["basketball", "volleyball_outside", "gymnastics"],
-    // "swimming" فقط در similar_by_anthropometry آمده (۱ دسته) — طبق تصمیم
-    // تاییدشده‌ی Commit 11/دوکلیدی، sport-id عمومی سند "swimming" معادل
-    // sport-id خاص matrix ما "swimming_general" در نظر گرفته می‌شود.
-    transfer_potential: { swimming_general: 0.6 },
-  },
-
-  swimming_general: {
-    similar_by_anthropometry: ["rowing"],
-    similar_by_performance: ["rowing"],
-    similar_by_psychology: ["rowing", "cycling_road"],
-    // بدون رابطه‌ی معکوس به volleyball_middle_blocker — لیست‌های sportRequirementMatrix
-    // این رشته اصلاً به والیبال اشاره نمی‌کنند. خالی گذاشته شد، نه حدس زده شد.
-    transfer_potential: {},
-  },
-
-  weightlifting_olympic: {
-    similar_by_anthropometry: ["wrestling_freestyle", "powerlifting"],
-    similar_by_performance: ["powerlifting"],
-    similar_by_psychology: ["powerlifting", "wrestling_freestyle"],
-    // wrestling_freestyle هم در similar_by_anthropometry هم similar_by_psychology
-    // آمده (۲ دسته از دید weightlifting — نامتقارن با جهت مقابل، عمداً).
-    transfer_potential: { wrestling_freestyle: 0.75 },
-  },
+const SPORT_ID_ALIASES = {
+  swimming: "swimming_general",
+  gymnastics: "gymnastics_artistic",
 };
 
-export { sportSimilarityGraph };
+// طبق تصمیم تاییدشده‌ی Commit 14.
+const CATEGORY_COUNT_TO_SCORE = { 1: 0.6, 2: 0.75, 3: 0.9 };
+
+function _resolveSportId(rawId) {
+  return SPORT_ID_ALIASES[rawId] ?? rawId;
+}
+
+function _buildTransferPotential(ownSportId, similarSports, allSportIds) {
+  const categoryCountByTarget = new Map();
+  const lists = [
+    similarSports.by_anthropometry ?? [],
+    similarSports.by_performance ?? [],
+    similarSports.by_psychology ?? [],
+  ];
+
+  for (const list of lists) {
+    // یک رشته‌ی هدف حداکثر یک‌بار در همین دسته شمرده می‌شود (لیست‌های سند
+    // تکراری ندارند، ولی این دفاعی است).
+    const uniqueInThisCategory = new Set(list.map(_resolveSportId));
+    for (const targetId of uniqueInThisCategory) {
+      if (targetId === ownSportId) continue;
+      if (!allSportIds.has(targetId)) continue; // فقط رشته‌های واقعاً ساخته‌شده
+      categoryCountByTarget.set(targetId, (categoryCountByTarget.get(targetId) ?? 0) + 1);
+    }
+  }
+
+  const transferPotential = {};
+  for (const [targetId, count] of categoryCountByTarget) {
+    transferPotential[targetId] = CATEGORY_COUNT_TO_SCORE[Math.min(count, 3)];
+  }
+  return transferPotential;
+}
+
+function _buildSportSimilarityGraph(sportRequirementMatrix) {
+  const allSportIds = new Set(Object.keys(sportRequirementMatrix));
+  const graph = {};
+
+  for (const [sportId, entry] of Object.entries(sportRequirementMatrix)) {
+    const similarSports = entry.similar_sports ?? { by_anthropometry: [], by_performance: [], by_psychology: [] };
+    graph[sportId] = {
+      similar_by_anthropometry: similarSports.by_anthropometry ?? [],
+      similar_by_performance: similarSports.by_performance ?? [],
+      similar_by_psychology: similarSports.by_psychology ?? [],
+      transfer_potential: _buildTransferPotential(sportId, similarSports, allSportIds),
+    };
+  }
+
+  return graph;
+}
+
+// طبق قرارداد Commit 14: مصرف‌کننده‌ی این فایل (file14_talentTransferSuggester.js)
+// یک آبجکت ثابت import می‌کند، نه یک تابع — پس محاسبه همین‌جا، در زمان
+// import، انجام می‌شود (نه lazily در هر فراخوانی).
+const sportSimilarityGraph = _buildSportSimilarityGraph(sportRequirementMatrix);
+
+export { sportSimilarityGraph, _buildSportSimilarityGraph, SPORT_ID_ALIASES, CATEGORY_COUNT_TO_SCORE };

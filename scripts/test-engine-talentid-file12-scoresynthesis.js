@@ -204,8 +204,8 @@ function assertClose(actual, expected, tolerance, message) {
     assert(result.medical_status === "medical_hold", "medical_status باید attach شود");
   });
 
-  console.log("\n[synthesizeScores — orchestrator با ۵ رشته‌ی واقعی matrix]");
-  check("همیشه دقیقاً ۵ رشته در خروجی، همه با ci=3 (baseline) و confidence_tier=high", () => {
+  console.log("\n[synthesizeScores — orchestrator با کل sportRequirementMatrix]");
+  check("همیشه به‌تعداد کل matrix در خروجی، همه با ci=3 (baseline) و confidence_tier=high", () => {
     const bioBanded = bioBandedFixture(140, 120, 85);
     const results = synthesizeScores(
       sportRequirementMatrix,
@@ -214,7 +214,8 @@ function assertClose(actual, expected, tolerance, message) {
       { formula_used: "mirwald" },
       { extracted_confidence: 0.9 }
     );
-    assert(Object.keys(results).length === 5, `انتظار ۵ رشته، گرفتیم ${Object.keys(results).length}`);
+    const expectedCount = Object.keys(sportRequirementMatrix).length;
+    assert(Object.keys(results).length === expectedCount, `انتظار ${expectedCount} رشته، گرفتیم ${Object.keys(results).length}`);
     for (const sportId of Object.keys(sportRequirementMatrix)) {
       assertClose(results[sportId].ci, 3, 0.0001, `${sportId}: ci نادرست`);
       assert(results[sportId].confidence_tier === "high", `${sportId}: confidence_tier باید high باشد`);
@@ -289,7 +290,10 @@ function assertClose(actual, expected, tolerance, message) {
         }
       }
     }
-    assert(checkedCount === scenarios.length * bioBandedVariants.length * 5, "تعداد چک‌ها نادرست است");
+    assert(
+      checkedCount === scenarios.length * bioBandedVariants.length * Object.keys(sportRequirementMatrix).length,
+      "تعداد چک‌ها نادرست است"
+    );
     console.log(`     (${checkedCount} ترکیب scenario×bioBanded×sport چک شد)`);
   });
 

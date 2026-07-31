@@ -87,11 +87,19 @@ function assertThrowsWithCode(fn, expectedCode, description) {
   });
 
   console.log("\n[postureهایی که هیچ‌کدام از ۵ رشته‌ی فعلی را پوشش نمی‌دهند]");
-  check("forward_head با severity=3 → active_posture ثبت می‌شود ولی هیچ adjustment ای برای ۵ رشته‌ی ما تولید نمی‌شود", () => {
+  check("forward_head با severity=3 → active_posture ثبت می‌شود؛ فقط boxing (Commit 17) پوشش دارد، نه ۵ رشته‌ی اصلی Commit 1", () => {
+    // ⚠️ به‌روزرسانی Commit 17: posturalSportImpactMap.forward_head از قبل
+    // (Commit 6) کلید "boxing" را داشت (dormant، چون boxing ساخته نشده بود).
+    // با ساخته‌شدن boxing در Commit 17، این ارتباط فعال شد — یافته‌ی مثبت،
+    // نه رگرسیون. ۵ رشته‌ی اصلی Commit 1 همچنان پوشش ندارند.
     const result = computePosturalAdjustments({ forward_head: { severity: 3 } }, sportRequirementMatrix);
     const activePosture = result.active_postures.find((p) => p.posture === "forward_head");
-    assert(activePosture.affected_sports_count === 0, "affected_sports_count باید ۰ باشد");
-    assert(Object.keys(result.adjustments_by_sport).length === 0, "نباید هیچ adjustment ای وجود داشته باشد");
+    assert(activePosture.affected_sports_count === 1, `affected_sports_count باید ۱ باشد (boxing)، گرفتیم ${activePosture.affected_sports_count}`);
+    assert(Object.keys(result.adjustments_by_sport).length === 1, "فقط یک رشته باید adjustment داشته باشد");
+    assert(result.adjustments_by_sport.boxing !== undefined, "boxing باید تنها رشته‌ی متأثر باشد");
+    for (const sportId of ["soccer_striker", "wrestling_freestyle", "volleyball_middle_blocker", "swimming_general", "weightlifting_olympic"]) {
+      assert(result.adjustments_by_sport[sportId] === undefined, `${sportId} نباید تحت تأثیر forward_head باشد`);
+    }
   });
 
   check("severity=0 → posture کلاً نادیده گرفته می‌شود", () => {
