@@ -79,4 +79,32 @@ function generateClientNarrative({ sportNameFa, finalScore, tier, primaryExclusi
   return `${sportNameFa}: امتیاز فعلی تو ${Math.round(finalScore)}٪ (${tierLabelFa(tier)}) است.`;
 }
 
-export { generateCoachNarrative, generateClientNarrative, tierLabelFa, TIER_LABEL_FA };
+// طبق بخش ۱۷.۱.۱ سند: executive_summary.overall_narrative، «۳-۵ خط». Commit 16.
+function generateOverallNarrative({ top3Reports, totalCorrectableSports, totalMedicalHolds, maturityType }) {
+  const lines = [];
+
+  if (top3Reports.length > 0) {
+    const namesWithScores = top3Reports.map((r) => `${r.sport_name_fa} (${Math.round(r.final_score)}٪)`).join("، ");
+    lines.push(`رشته‌های برتر فعلی: ${namesWithScores}.`);
+  } else {
+    lines.push("در حال حاضر هیچ رشته‌ای ارزیابی نشده است.");
+  }
+
+  if (totalCorrectableSports > 0) {
+    lines.push(`${totalCorrectableSports} رشته‌ی دیگر با اصلاح نقاط ضعف پوسچرال/ROM می‌توانند به کلاس A برسند.`);
+  }
+
+  if (totalMedicalHolds > 0) {
+    lines.push(`${totalMedicalHolds} رشته نیازمند بررسی/تأیید پزشکی پیش از ادامه هستند.`);
+  }
+
+  if (maturityType === "early_maturer") {
+    lines.push("⚠️ این ورزشکار Early Maturer است — نتایج فعلی را با احتیاط نسبت به هم‌سالان late maturer تفسیر کنید.");
+  } else if (maturityType === "late_maturer") {
+    lines.push("⚠️ این ورزشکار Late Maturer است — پتانسیل واقعی ممکن است هنوز کاملاً نمایان نشده باشد.");
+  }
+
+  return lines.join(" ");
+}
+
+export { generateCoachNarrative, generateClientNarrative, generateOverallNarrative, tierLabelFa, TIER_LABEL_FA };
