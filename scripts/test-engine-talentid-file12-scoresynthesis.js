@@ -115,6 +115,61 @@ function assertClose(actual, expected, tolerance, message) {
     assertClose(result.component_scores.psych, 100, 0.0001, "component psych نباید rescale شود");
   });
 
+  console.log("\n[posturalPenaltySum/romPenaltySum — یافته‌ی حیاتی Commit 13، پارامترهای اختیاری جدید]");
+  check("پیش‌فرض (بدون پاس دادن) → دقیقاً همان رفتار قبلی (backward-compatible)", () => {
+    const withDefaults = synthesizeScoreForSport(
+      { adjusted_bio_score: 120, adjusted_perf_score: 110, adjusted_psych_score: 80 },
+      "clear",
+      { bio: 0.4, perf: 0.4, psych: 0.2 },
+      BASELINE_CI_INPUTS
+    );
+    const withExplicitZero = synthesizeScoreForSport(
+      { adjusted_bio_score: 120, adjusted_perf_score: 110, adjusted_psych_score: 80 },
+      "clear",
+      { bio: 0.4, perf: 0.4, psych: 0.2 },
+      BASELINE_CI_INPUTS,
+      0,
+      0
+    );
+    assertClose(withDefaults.final_score, withExplicitZero.final_score, 0.0001, "باید یکسان باشند");
+  });
+  check("posturalPenaltySum=-25 → قبل از rescale به bio اضافه می‌شود (bio=120-25=95 → rescale 47.5)", () => {
+    const result = synthesizeScoreForSport(
+      { adjusted_bio_score: 120, adjusted_perf_score: 110, adjusted_psych_score: 80 },
+      "clear",
+      { bio: 0.4, perf: 0.4, psych: 0.2 },
+      BASELINE_CI_INPUTS,
+      -25,
+      0
+    );
+    assertClose(result.component_scores.bio, 47.5, 0.0001, "component bio نادرست");
+    // final = 47.5×0.4 + 55×0.4 + 80×0.2 = 19 + 22 + 16 = 57
+    assertClose(result.final_score, 57, 0.0001, "final_score نادرست");
+  });
+  check("posturalPenaltySum + romPenaltySum هم‌زمان جمع می‌شوند (-25 و -20 → bio=120-45=75 → rescale 37.5)", () => {
+    const result = synthesizeScoreForSport(
+      { adjusted_bio_score: 120, adjusted_perf_score: 110, adjusted_psych_score: 80 },
+      "clear",
+      { bio: 0.4, perf: 0.4, psych: 0.2 },
+      BASELINE_CI_INPUTS,
+      -25,
+      -20
+    );
+    assertClose(result.component_scores.bio, 37.5, 0.0001, "component bio نادرست");
+  });
+  check("bioRaw منفی (پنالتی خیلی بزرگ) → clamp در کف ۰، نه عدد منفی", () => {
+    const result = synthesizeScoreForSport(
+      { adjusted_bio_score: 10, adjusted_perf_score: 110, adjusted_psych_score: 80 },
+      "clear",
+      { bio: 0.4, perf: 0.4, psych: 0.2 },
+      BASELINE_CI_INPUTS,
+      -50,
+      -50
+    );
+    assertClose(result.component_scores.bio, 0, 0.0001, "component bio باید در ۰ clamp شود");
+    assert(Number.isFinite(result.final_score), "final_score باید عدد معتبر بماند");
+  });
+
   console.log("\n[⚠️ سناریوی ceiling-clustering — همان مثال مستندشده در docs/TODO-ci-computation.md]");
   check("wrestling_freestyle: bio=155,perf=115,psych=90 → با rescale final=72 (نه 100 که بدون rescale می‌شد)", () => {
     const result = synthesizeScoreForSport(

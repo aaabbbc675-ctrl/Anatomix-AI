@@ -109,8 +109,35 @@ function computeDynamicWeights(psychProfile, maturityProfile) {
   return weights;
 }
 
-function synthesizeScoreForSport(bioBandedEntry, medicalStatus, weights, ciInputs) {
-  const bio = bioBandedEntry.adjusted_bio_score / BIO_PERF_RESCALE_DIVISOR;
+// ⚠️ یافته‌ی حیاتی، کشف‌شده حین تحلیل Commit 13 (نه یک ابهام از پیش‌شناخته‌شده):
+// تا این نقطه، پنالتی‌های پوسچرال (file5/Commit 6) و ROM (file6/Commit 7)
+// هرگز به هیچ امتیازی وصل نبودند — grep تأیید کرد computePosturalAdjustments/
+// computeRomAdjustments هیچ‌جای دیگری فراخوانی نمی‌شدند. اما بخش ۰.۳ سند
+// (اصل ۱) با یک مثال کارکردی («امتیاز شما ۴۵٪... این رشته می‌تواند ۹۲٪
+// باشد؛ ولی به دلیل کایفوز...») صریحاً نشان می‌دهد پوسچرال باید واقعاً روی
+// امتیاز نهایی اثر بگذارد، فقط هرگز رشته را کامل حذف نکند («فقط جریمه
+// می‌گیرد، هرگز حذف نمی‌کند» — نه «هرگز اثر نمی‌گذارد»).
+//
+// تصمیم تاییدشده‌ی Commit 13 (نه گزینه‌ی «بدون تغییر Commit 11»، نه گزینه‌ی
+// «بازنویسی کامل Commit 11/12» — یک رویکرد سوم با استدلال علمی): بیو-بندینگ
+// (ضریب early/late maturer، Commit 11) فقط باید روی صفات *مرتبط با زمان‌بندی
+// بلوغ* اعمال شود — یعنی خروجی خام file4 (آنتروپومتریک/ترکیب بدنی: قد،
+// FFMI، درصد چربی و...) که واقعاً با سرعت رشد فرد هم‌بسته‌اند. پنالتی‌های
+// ساختاری/پوسچرال (کایفوز، اسکولیوز و...) و ROM (کوتاهی عضلانی) علت‌شناسی
+// و پروتکل اصلاحی مستقل خودشان را دارند (مثلاً «۱۲ هفته پروتکل کایفوز») که
+// ربطی به این ندارد ورزشکار early maturer است یا late — پس نباید در معرض
+// همان ضریب ۰.۹/۱.۱۵ قرار بگیرند.
+//
+// راه‌حل: این پنالتی‌ها *بعد* از بیو-بندینگ (که دست‌نخورده در file11 باقی
+// می‌ماند) ولی *قبل* از rescale ÷۲ و وزن‌دهی، به مؤلفه‌ی bio اضافه می‌شوند —
+// چون این دو (posturalPenaltySum/romPenaltySum) پارامتر اختیاری با پیش‌فرض
+// صفر هستند، فراخوانی‌های موجود (هر ۱۸ تست Commit 12) بدون تغییر رفتار
+// می‌مانند؛ رگرسیون کامل قبل از commit این را تأیید می‌کند. مصرف‌کننده‌ی
+// جدید این دو پارامتر، file13 (Commit 13) است که مجموع پنالتی‌های پوسچرال/
+// ROM هر رشته را از خروجی file5/file6 جمع می‌زند و اینجا پاس می‌دهد.
+function synthesizeScoreForSport(bioBandedEntry, medicalStatus, weights, ciInputs, posturalPenaltySum = 0, romPenaltySum = 0) {
+  const bioRaw = clamp(bioBandedEntry.adjusted_bio_score + posturalPenaltySum + romPenaltySum, 0, 200);
+  const bio = bioRaw / BIO_PERF_RESCALE_DIVISOR;
   const perf = bioBandedEntry.adjusted_perf_score / BIO_PERF_RESCALE_DIVISOR;
   const psych = bioBandedEntry.adjusted_psych_score;
 
