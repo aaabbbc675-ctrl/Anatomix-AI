@@ -293,6 +293,25 @@ function baseRawChatbot() {
     assert(result.demographics.birth_month === 4, `انتظار ۴، گرفتیم ${result.demographics.birth_month}`);
   });
 
+  check("birth_month_shamsi از date_of_birth میلادی درست محاسبه می‌شود (۲۰۱۳-۰۴-۱۵ میلادی → ۲۶ فروردین ۱۳۹۲ → ماه شمسی ۱)", () => {
+    const result = normalizeIntake(baseRawDevice(), baseRawCoach(), null);
+    assert(
+      result.demographics.birth_month_shamsi === 1,
+      `انتظار ۱ (فروردین)، گرفتیم ${result.demographics.birth_month_shamsi}`
+    );
+  });
+
+  check("birth_month_shamsi روی مرز سال نو (۲۰۱۳-۰۳-۲۰ میلادی → ۳۰ اسفند ۱۳۹۱ → ماه شمسی ۱۲) درست است", () => {
+    const coach = baseRawCoach();
+    coach.date_of_birth = "2013-03-20";
+    const result = normalizeIntake(baseRawDevice(), coach, null);
+    assert(
+      result.demographics.birth_month_shamsi === 12,
+      `انتظار ۱۲ (اسفند)، گرفتیم ${result.demographics.birth_month_shamsi}`
+    );
+    assert(result.demographics.birth_month === 3, "birth_month میلادی نباید تحت تأثیر قرار گیرد");
+  });
+
   console.log(`\n[test-engine-talentid-file1-intake] ${passCount} PASS, ${failCount} FAIL`);
   process.exit(failCount > 0 ? 1 : 0);
 })();

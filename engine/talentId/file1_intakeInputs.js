@@ -356,6 +356,18 @@ function normalizeIntake(rawDevice, rawCoach, rawChatbot) {
   const perf = normalizePerf(rawCoach.performance_tests, chronoAge);
   const dataQuality = assessDataQuality(rawDevice, rawCoach);
   const birthMonth = dobDate.getMonth() + 1;
+  // طبق تصمیم تاییدشده‌ی Commit 11 (گزینه‌ی ج): birth_month بالا میلادی
+  // است (JS Date.getMonth) و معنایش عوض نشد. برای RAE Alert (بخش ۱۲.۳ سند،
+  // بر اساس فروردین/اردیبهشت/خرداد — ماه‌های تقویم شمسی) یک فیلد جداگانه
+  // و صریح‌النام اضافه شد تا هیچ consumer آینده‌ای فرض نکند birth_month
+  // خودش شمسی است. از Intl.DateTimeFormat با calendar شمسی built-in
+  // استفاده شده (بدون کتابخانه‌ی خارجی جدید — همان خانواده‌ی الگوی
+  // toLocaleDateString("fa-IR") که در src/components/StudentCard.jsx برای
+  // نمایش تاریخ از قبل در پروژه استفاده می‌شود). وریفای شد با تاریخ‌های
+  // مرزی (۲۰ و ۲۱ مارس ۲۰۱۳ → درست به ۱ فروردین و ۳۰ اسفند تفکیک می‌شوند).
+  const birthMonthShamsi = Number(
+    new Intl.DateTimeFormat("en-US-u-ca-persian", { month: "numeric" }).format(dobDate)
+  );
 
   // طبق بخش ۲.۴ سند — Warning جمع می‌شوند، رد نمی‌کنند.
   const warnings = [];
@@ -395,6 +407,7 @@ function normalizeIntake(rawDevice, rawCoach, rawChatbot) {
       biological_sex: rawCoach.biological_sex,
       date_of_birth: rawCoach.date_of_birth,
       birth_month: birthMonth,
+      birth_month_shamsi: birthMonthShamsi,
     },
     anthropometrics: anthroPublic,
     body_composition: composition,
