@@ -62,11 +62,16 @@ function assert(condition, message) {
     assert(Object.keys(tp).length === 1, "باید دقیقاً ۱ مورد داشته باشد");
     assert(tp.wrestling_freestyle === 0.75, `انتظار ۰.۷۵، گرفتیم ${tp.wrestling_freestyle}`);
   });
-  check("volleyball_middle_blocker.transfer_potential حالا شامل gymnastics_artistic(۰.۶) هم هست، علاوه بر swimming_general(۰.۶)", () => {
+  check("volleyball_middle_blocker.transfer_potential بعد از Commit 18 حالا ۴ مورد دارد: basketball_center و volleyball_outside هم فعال شدند (ارجاعات خفته‌ی Commit 1)", () => {
+    // ⚠️ به‌روزرسانی Commit 18: با ساخته‌شدن basketball_center (by_anthropometry)
+    // و volleyball_outside (by_psychology)، دو ارجاع خفته‌ی دیگر از Commit 1
+    // فعال شدند — یافته‌ی مثبت، نه رگرسیون (هم‌الگوی Commit 17).
     const tp = sportSimilarityGraph.volleyball_middle_blocker.transfer_potential;
-    assert(Object.keys(tp).length === 2, `انتظار ۲ مورد، گرفتیم ${Object.keys(tp).length}`);
+    assert(Object.keys(tp).length === 4, `انتظار ۴ مورد، گرفتیم ${Object.keys(tp).length}`);
     assert(tp.swimming_general === 0.6, `انتظار ۰.۶، گرفتیم ${tp.swimming_general}`);
     assert(tp.gymnastics_artistic === 0.6, `انتظار ۰.۶، گرفتیم ${tp.gymnastics_artistic}`);
+    assert(tp.basketball_center === 0.6, `basketball_center: انتظار ۰.۶، گرفتیم ${tp.basketball_center}`);
+    assert(tp.volleyball_outside === 0.6, `volleyball_outside: انتظار ۰.۶، گرفتیم ${tp.volleyball_outside}`);
   });
   check("swimming_general.transfer_potential دیگر خالی نیست: حالا cycling_road(۰.۶) دارد (رابطه‌ی از قبل موجود، تازه‌فعال‌شده)", () => {
     const tp = sportSimilarityGraph.swimming_general.transfer_potential;
@@ -79,6 +84,29 @@ function assert(condition, message) {
     assert(tp.sprint_100m === 0.6, `sprint_100m: انتظار ۰.۶، گرفتیم ${tp.sprint_100m}`);
     assert(tp.boxing === 0.6, `boxing: انتظار ۰.۶، گرفتیم ${tp.boxing}`);
     assert(tp.handball_pivot === 0.6, `handball_pivot: انتظار ۰.۶، گرفتیم ${tp.handball_pivot}`);
+  });
+
+  console.log("\n[پوشش sportSimilarityGraph — رشته‌های تازه‌ساخته‌شده‌ی Commit 18]");
+  check("soccer_goalkeeper.transfer_potential: handball_goalkeeper با ۰.۹ (هر ۳ دسته)، futsal_goalkeeper با ۰.۷۵ (۲ دسته)", () => {
+    const tp = sportSimilarityGraph.soccer_goalkeeper.transfer_potential;
+    assert(Object.keys(tp).length === 2, `انتظار ۲ مورد، گرفتیم ${Object.keys(tp).length}`);
+    assert(tp.handball_goalkeeper === 0.9, `handball_goalkeeper: انتظار ۰.۹، گرفتیم ${tp.handball_goalkeeper}`);
+    assert(tp.futsal_goalkeeper === 0.75, `futsal_goalkeeper: انتظار ۰.۷۵، گرفتیم ${tp.futsal_goalkeeper}`);
+  });
+  check("soccer_winger.transfer_potential: sprint_100m و soccer_striker هر دو ۰.۶ (۱ دسته هرکدام)", () => {
+    const tp = sportSimilarityGraph.soccer_winger.transfer_potential;
+    assert(Object.keys(tp).length === 2, `انتظار ۲ مورد، گرفتیم ${Object.keys(tp).length}`);
+    assert(tp.sprint_100m === 0.6, `sprint_100m: انتظار ۰.۶، گرفتیم ${tp.sprint_100m}`);
+    assert(tp.soccer_striker === 0.6, `soccer_striker: انتظار ۰.۶، گرفتیم ${tp.soccer_striker}`);
+  });
+  check("basketball_center.transfer_potential: فقط volleyball_middle_blocker (۰.۶، ۱ دسته)", () => {
+    const tp = sportSimilarityGraph.basketball_center.transfer_potential;
+    assert(Object.keys(tp).length === 1, "باید دقیقاً ۱ مورد داشته باشد");
+    assert(tp.volleyball_middle_blocker === 0.6, `انتظار ۰.۶، گرفتیم ${tp.volleyball_middle_blocker}`);
+  });
+  check("basketball_playmaker.transfer_potential: خالی (صادقانه، بدون ارتباط حدسی)", () => {
+    const tp = sportSimilarityGraph.basketball_playmaker.transfer_potential;
+    assert(Object.keys(tp).length === 0, "باید کاملاً خالی باشد");
   });
 
   console.log("\n[suggestTalentTransfers — شرط‌های رد پیشنهاد]");

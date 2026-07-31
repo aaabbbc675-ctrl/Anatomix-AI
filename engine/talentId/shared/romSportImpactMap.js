@@ -36,19 +36,32 @@ const romSportImpactMap = {
     hurdles: { penalty: -20, reason: "رد شدن از مانع" },
     soccer: { penalty: -10, reason: "شوت" },
     soccer_striker: { penalty: -10, reason: "شوت" },
+    // دوکلیدی جدید Commit 18: فقط winger از ۵ پست جدید فوتبال — تصمیم
+    // تاییدشده، «قطع به داخل و شوت» ویژگی تعریف‌کننده‌ی این پست است، نه
+    // مهارت محوری CB/FB/DM/GK (رجوع کنید به کامنت soccer_winger).
+    soccer_winger: { penalty: -10, reason: "شوت" },
   },
   pectoralis_short: {
     swimming: { penalty: -20, reason: "شبیه rounded shoulder" },
     swimming_general: { penalty: -20, reason: "شبیه rounded shoulder" },
     volleyball: { penalty: -15, reason: "اسپک" },
     volleyball_middle_blocker: { penalty: -15, reason: "اسپک" },
+    // دوکلیدی جدید Commit 18: outside کپی مستقیم (همان سازوکار اسپک).
+    // setter مورد ضعیف‌تر گروه (ست‌زنی، نه اسپک) — هم‌الگوی تصمیم
+    // kyphosis/rounded_shoulder برای همین پست.
+    volleyball_outside: { penalty: -15, reason: "اسپک" },
+    volleyball_setter: { penalty: -15, reason: "ست‌زنی بالای سر (خفیف‌تر از اسپک)" },
   },
 };
 
 const hypermobilityImpact = {
   positive: ["swimming", "swimming_general", "gymnastics", "taekwondo", "weightlifting_olympic", "wrestling", "wrestling_freestyle", "judo", "diving"],
   positive_bonus: 15,
-  negative: ["powerlifting", "high_jump", "volleyball_middle_blocker"],
+  // ⚠️ افزوده‌شده در Commit 18: basketball_center (فرود سنگین زیر سبد،
+  // هم‌الگوی high_jump) و volleyball_outside (فرود پرشی حمله، هم‌الگوی
+  // volleyball_middle_blocker موجود) — همان سازوکار بی‌ثباتی مفصل زیر بار
+  // فرود، نه رشته‌ی تازه‌ای با منطق متفاوت.
+  negative: ["powerlifting", "high_jump", "volleyball_middle_blocker", "basketball_center", "volleyball_outside"],
   negative_penalty: -15,
   reason_negative: "خطر دررفتگی زیر بار سنگین / بی‌ثباتی مفصل",
   reason_positive: "مزیت ROM اضافی برای اجرای تکنیک",

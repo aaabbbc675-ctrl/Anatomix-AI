@@ -819,6 +819,742 @@ const sportRequirementMatrix = {
     similar_sports: { by_anthropometry: [], by_performance: ["soccer_striker"], by_psychology: ["soccer_striker"] },
   },
 
+  // ─── تیمی-توپی: فوتبال (۵ پست جامانده‌ی Commit 18، رجوع کنید به
+  // docs/TODO-wave-labeling-correction.md) — سند فقط اسم/category این پست‌ها
+  // را داده (بخش ۲۰.۶)، بدون schema کامل؛ دیتا از دانش استاندارد پست‌بندی
+  // فوتبال ساخته شد و در جدول خلاصه‌ی این Commit تأیید شد.
+  soccer_goalkeeper: {
+    id: "soccer_goalkeeper",
+    name_fa: "فوتبال - دروازه‌بان",
+    name_en: "Soccer - Goalkeeper",
+    category: "team_ball",
+    subcategory: "goalkeeper",
+    is_position_specific: true,
+    parent_sport: "soccer",
+
+    // هم‌الگوی handball_goalkeeper (Commit 17): قد بلند + دهانه‌ی دست برای
+    // پوشش دروازه.
+    anthropometric_bonuses: {
+      tall_stature: { threshold_cm_male: 185, threshold_cm_female: 172, bonus: 15 },
+      ape_index_high: 10,
+    },
+    composition_bonuses: {},
+    biometric_bonuses: { balance_score_high: 10 },
+
+    performance_weights: {
+      agility_5_10_5: 0.3,
+      vertical_jump: 0.25,
+      broad_jump: 0.15,
+      sit_and_reach: 0.15,
+      handgrip: 0.1,
+      beep_test: 0.05,
+    },
+    critical_perf_tests: ["agility_5_10_5", "vertical_jump"],
+
+    psych_requirements: {
+      teamwork_score: 2,
+      aggression_contact: 2,
+      focus_patience: 5,
+      pressure_tolerance: 5,
+      dynamic_activity: 2,
+      chaos_decision: 4,
+      resilience: 5,
+    },
+    trait_importance: {
+      pressure_tolerance: 2,
+      resilience: 2,
+      focus_patience: 1.5,
+      chaos_decision: 1,
+      teamwork_score: 0.5,
+      aggression_contact: 0.5,
+      dynamic_activity: 1,
+    },
+
+    minimum_bio_age_recommended: 10,
+    is_recommended_early_specialization: false,
+    ltad_stage: "LearningToTrain",
+
+    // تصمیم تاییدشده‌ی Commit 18: هیچ posture‌ای در posturalSportImpactMap
+    // برای این پست تعریف نشد — الگوی حرکتی دروازه‌بان (شیرجه، نه دویدن
+    // مداوم) با پنالتی‌های موجود (مبتنی بر دویدن/شوت) تطابق ندارد؛ صادقانه
+    // خالی، نه حدس.
+    postural_contraindications: [],
+    // ⚠️ انحراف از soccer عمومی («safe») — تصمیم تاییدشده‌ی Commit 18: این
+    // یک استنتاج بیومکانیکی معقول است (شیرجه/گرفتن بالای سر = ریسک
+    // shoulder overuse شناخته‌شده در ادبیات دروازه‌بانی)، **نه** برگرفته از
+    // یک مطالعه‌ی اپیدمیولوژیک خاص — هم‌سطح صداقت افشای body_fat زنانه
+    // (Commit 5) و wushu_sanda (Commit 17). رجوع کنید به activePathologyMap.js.
+    medical_contraindications: ["active_shoulder_impingement"],
+
+    // اطمینان قوی-استنتاجی (۲ دسته): پروفایل روانی و critical_perf_tests
+    // تقریباً یکسان با دو دروازه‌بان دیگر matrix. by_anthropometry فقط با
+    // handball_goalkeeper (futsal_goalkeeper عمداً بدون tall_stature است —
+    // دروازه‌ی کوچک‌تر).
+    similar_sports: {
+      by_anthropometry: ["handball_goalkeeper"],
+      by_performance: ["handball_goalkeeper", "futsal_goalkeeper"],
+      by_psychology: ["handball_goalkeeper", "futsal_goalkeeper"],
+    },
+  },
+
+  soccer_center_back: {
+    id: "soccer_center_back",
+    name_fa: "فوتبال - مدافع میانی",
+    name_en: "Soccer - Center Back",
+    category: "team_ball",
+    subcategory: "center_back",
+    is_position_specific: true,
+    parent_sport: "soccer",
+
+    anthropometric_bonuses: {
+      tall_stature: { threshold_cm_male: 183, threshold_cm_female: 170, bonus: 15 },
+      cormic_high: 10,
+    },
+    composition_bonuses: { smm_high: 15 },
+    biometric_bonuses: { bilateral_asymmetry_high: -15 },
+
+    performance_weights: {
+      vertical_jump: 0.25,
+      pushups: 0.2,
+      agility_5_10_5: 0.2,
+      sprint_30m: 0.15,
+      beep_test: 0.15,
+      broad_jump: 0.05,
+    },
+    critical_perf_tests: ["vertical_jump", "pushups"],
+
+    psych_requirements: {
+      teamwork_score: 4,
+      aggression_contact: 4,
+      focus_patience: 5,
+      pressure_tolerance: 5,
+      dynamic_activity: 2,
+      chaos_decision: 2,
+      resilience: 5,
+    },
+    trait_importance: {
+      focus_patience: 1.5,
+      pressure_tolerance: 1.5,
+      resilience: 1.5,
+      teamwork_score: 1,
+      aggression_contact: 1,
+      dynamic_activity: 0.5,
+      chaos_decision: 0.5,
+    },
+
+    minimum_bio_age_recommended: 10,
+    is_recommended_early_specialization: false,
+    ltad_stage: "LearningToTrain",
+
+    // ⚠️ تصمیم تاییدشده‌ی Commit 18 (مستند به مطالعه، نه استنتاج): طبق
+    // Di Salvo V, Baron R, Tschan H, Bachl N, Pigozzi F. "Performance
+    // Characteristics According to Playing Position in Elite Soccer."
+    // Int J Sports Med. 2007;28(3):222-227 — مدافعان میانی (Central
+    // Defenders) هم در مسافت دویدن پرشدت (>۲۳km/h) به‌طور معنادار کمتر از
+    // مدافعان کناری/هافبک‌های کناری/مهاجمان می‌دوند (p<0.0001)، هم برخلاف
+    // هافبک‌های مرکزی بیشترین مسافت دویدن پیوسته (شدت متوسط) را ندارند —
+    // بنابراین flat_foot عمداً برای این پست اضافه نشد (برخلاف full_back/
+    // defensive_mid/winger پایین‌تر).
+    postural_contraindications: ["genu_valgum"],
+    medical_contraindications: ["active_meniscus_tear", "active_acl_partial_tear", "active_ankle_sprain_grade_2_or_3"],
+
+    // اطمینان ضعیف-استنتاجی (۱ دسته): قد بلند + پرش هوایی مشترک با
+    // volleyball_middle_blocker، نه سازوکار حرکتی یکسان.
+    similar_sports: {
+      by_anthropometry: ["volleyball_middle_blocker"],
+      by_performance: [],
+      by_psychology: [],
+    },
+  },
+
+  soccer_full_back: {
+    id: "soccer_full_back",
+    name_fa: "فوتبال - مدافع کناری",
+    name_en: "Soccer - Full Back",
+    category: "team_ball",
+    subcategory: "full_back",
+    is_position_specific: true,
+    parent_sport: "soccer",
+
+    // صادقانه خالی: برخلاف center_back/goalkeeper، هیچ آستانه‌ی قد/اندام
+    // مستندی برای این پست پیدا نشد — پروفایل آتلتیک همه‌کاره است.
+    anthropometric_bonuses: {},
+    composition_bonuses: { bf_very_low: 10 },
+    biometric_bonuses: {},
+
+    performance_weights: {
+      beep_test: 0.25,
+      sprint_30m: 0.2,
+      agility_5_10_5: 0.2,
+      sprint_10m: 0.15,
+      broad_jump: 0.1,
+      handgrip: 0.1,
+    },
+    critical_perf_tests: ["beep_test", "sprint_30m"],
+
+    psych_requirements: {
+      teamwork_score: 3,
+      aggression_contact: 3,
+      focus_patience: 3,
+      pressure_tolerance: 4,
+      dynamic_activity: 5,
+      chaos_decision: 4,
+      resilience: 4,
+    },
+    trait_importance: {
+      dynamic_activity: 1.5,
+      chaos_decision: 1,
+      pressure_tolerance: 1,
+      teamwork_score: 1,
+      aggression_contact: 1,
+      focus_patience: 1,
+      resilience: 1,
+    },
+
+    minimum_bio_age_recommended: 10,
+    is_recommended_early_specialization: false,
+    ltad_stage: "LearningToTrain",
+
+    // مستند به Di Salvo et al. 2007 (رجوع کنید به کامنت center_back):
+    // مدافعان کناری (External Defenders) در مسافت دویدن پرشدت تفاوت
+    // معناداری با هافبک‌های کناری/مهاجمان ندارند — این پست دویدن مداوم/
+    // پرشدت واقعی دارد؛ flat_foot عمداً پوشش داده شد.
+    postural_contraindications: ["flat_foot"],
+    medical_contraindications: ["active_meniscus_tear", "active_acl_partial_tear", "active_ankle_sprain_grade_2_or_3"],
+
+    // اطمینان ضعیف-استنتاجی (۱ دسته): اتکای مشترک به ظرفیت هوازی/beep_test،
+    // نه سازوکار حرکتی یکسان.
+    similar_sports: {
+      by_anthropometry: [],
+      by_performance: ["middle_distance_running"],
+      by_psychology: [],
+    },
+  },
+
+  soccer_defensive_mid: {
+    id: "soccer_defensive_mid",
+    name_fa: "فوتبال - هافبک دفاعی",
+    name_en: "Soccer - Defensive Midfielder",
+    category: "team_ball",
+    subcategory: "defensive_mid",
+    is_position_specific: true,
+    parent_sport: "soccer",
+
+    anthropometric_bonuses: {},
+    composition_bonuses: { smm_high: 10 },
+    biometric_bonuses: {},
+
+    performance_weights: {
+      beep_test: 0.3,
+      agility_5_10_5: 0.2,
+      pushups: 0.15,
+      sprint_30m: 0.15,
+      handgrip: 0.1,
+      broad_jump: 0.1,
+    },
+    critical_perf_tests: ["beep_test"],
+
+    psych_requirements: {
+      teamwork_score: 5,
+      aggression_contact: 4,
+      focus_patience: 5,
+      pressure_tolerance: 5,
+      dynamic_activity: 3,
+      chaos_decision: 2,
+      resilience: 4,
+    },
+    trait_importance: {
+      teamwork_score: 1.5,
+      focus_patience: 1.5,
+      pressure_tolerance: 1.5,
+      aggression_contact: 1,
+      resilience: 1,
+      dynamic_activity: 0.5,
+      chaos_decision: 0.5,
+    },
+
+    minimum_bio_age_recommended: 10,
+    is_recommended_early_specialization: false,
+    ltad_stage: "LearningToTrain",
+
+    // مستند به Di Salvo et al. 2007 (رجوع کنید به کامنت center_back):
+    // هافبک‌های مرکزی برخلاف مدافعان میانی، بیشترین مسافت دویدن با شدت
+    // متوسط (۱۱.۱-۱۹km/h، یعنی دویدن پیوسته) را در کل بازیکنان زمین دارند
+    // — طبق این یافته، flat_foot برای این پست مستند است.
+    postural_contraindications: ["flat_foot"],
+    medical_contraindications: ["active_meniscus_tear", "active_acl_partial_tear", "active_ankle_sprain_grade_2_or_3"],
+
+    // اطمینان ضعیف-استنتاجی (۱ دسته): بالاترین حجم دویدن پیوسته، هم‌الگوی
+    // full_back.
+    similar_sports: {
+      by_anthropometry: [],
+      by_performance: ["middle_distance_running"],
+      by_psychology: [],
+    },
+  },
+
+  soccer_winger: {
+    id: "soccer_winger",
+    name_fa: "فوتبال - وینگر",
+    name_en: "Soccer - Winger",
+    category: "team_ball",
+    subcategory: "winger",
+    is_position_specific: true,
+    parent_sport: "soccer",
+
+    // cormic_low هم‌الگوی sprint_100m/sprint_200m/taekwondo (Commit 17):
+    // پای نسبتاً بلندتر برای سرعت خطی.
+    anthropometric_bonuses: { cormic_low: 10 },
+    composition_bonuses: { bf_very_low: 15 },
+    biometric_bonuses: {},
+
+    performance_weights: {
+      sprint_10m: 0.3,
+      agility_5_10_5: 0.25,
+      sprint_30m: 0.15,
+      vertical_jump: 0.1,
+      broad_jump: 0.1,
+      beep_test: 0.1,
+    },
+    critical_perf_tests: ["sprint_10m", "agility_5_10_5"],
+
+    psych_requirements: {
+      teamwork_score: 2,
+      aggression_contact: 3,
+      focus_patience: 3,
+      pressure_tolerance: 4,
+      dynamic_activity: 5,
+      chaos_decision: 5,
+      resilience: 4,
+    },
+    trait_importance: {
+      dynamic_activity: 1.5,
+      chaos_decision: 1.5,
+      pressure_tolerance: 1,
+      aggression_contact: 1,
+      teamwork_score: 0.5,
+      focus_patience: 1,
+      resilience: 1,
+    },
+
+    minimum_bio_age_recommended: 10,
+    is_recommended_early_specialization: false,
+    ltad_stage: "LearningToTrain",
+
+    // flat_foot مستند به Di Salvo et al. 2007 (دویدن پرشدت بالا، بدون
+    // تفاوت معنادار با full_back/مهاجم). hip_flexor_short فقط برای این
+    // پست از ۵ پست جدید: تصمیم تاییدشده‌ی Commit 18 — «قطع به داخل و
+    // شوت» ویژگی تعریف‌کننده‌ی وینگر مدرن است، نه مهارت محوری CB/FB/DM.
+    postural_contraindications: ["flat_foot"],
+    medical_contraindications: ["active_meniscus_tear", "active_acl_partial_tear", "active_ankle_sprain_grade_2_or_3"],
+
+    // اطمینان ضعیف (۱ دسته هرکدام): sprint_100m از اتکای مشترک به شتاب/
+    // agility؛ soccer_striker از اشتراک روانی chaos_decision=۵ (تصمیم‌گیری
+    // خلاقانه‌ی پرریسک)، نه پروفایل فیزیکی یکسان.
+    similar_sports: {
+      by_anthropometry: [],
+      by_performance: ["sprint_100m"],
+      by_psychology: ["soccer_striker"],
+    },
+  },
+
+  // ─── تیمی-توپی: بسکتبال + والیبال (پست‌های جامانده‌ی Commit 18) ─────────
+  basketball_playmaker: {
+    id: "basketball_playmaker",
+    name_fa: "بسکتبال - گارد راس (پلی‌میکر)",
+    name_en: "Basketball - Point Guard",
+    category: "team_ball",
+    subcategory: "playmaker",
+    is_position_specific: true,
+    parent_sport: "basketball",
+
+    // صادقانه خالی: پلی‌میکر شناخته‌شده‌ترین کوتاه‌ترین پست بسکتبال است؛
+    // برخلاف center، بونوس قدی برایش گذاشته نشد.
+    anthropometric_bonuses: {},
+    composition_bonuses: {},
+    biometric_bonuses: {},
+
+    performance_weights: {
+      agility_5_10_5: 0.3,
+      sprint_10m: 0.25,
+      broad_jump: 0.15,
+      vertical_jump: 0.1,
+      beep_test: 0.1,
+      handgrip: 0.1,
+    },
+    critical_perf_tests: ["agility_5_10_5", "sprint_10m"],
+
+    psych_requirements: {
+      teamwork_score: 5,
+      aggression_contact: 2,
+      focus_patience: 4,
+      pressure_tolerance: 5,
+      dynamic_activity: 5,
+      chaos_decision: 5,
+      resilience: 4,
+    },
+    trait_importance: {
+      teamwork_score: 1.5,
+      chaos_decision: 1.5,
+      pressure_tolerance: 1.5,
+      dynamic_activity: 1,
+      focus_patience: 1,
+      aggression_contact: 0.5,
+      resilience: 1,
+    },
+
+    minimum_bio_age_recommended: 10,
+    is_recommended_early_specialization: false,
+    ltad_stage: "LearningToTrain",
+
+    postural_contraindications: ["genu_valgum", "genu_varum"],
+    medical_contraindications: [
+      "active_meniscus_tear",
+      "active_acl_partial_tear",
+      "active_ankle_sprain_grade_2_or_3",
+      "active_shoulder_impingement",
+    ],
+
+    // صادقانه خالی: هیچ ارتباط معنادار با ۴۰ رشته‌ی دیگر matrix پیدا نشد —
+    // نقش پلی‌میکر (خواندن بازی+ایجاد فرصت با توپ در دست) به اندازه‌ی
+    // کافی منحصربه‌فرد است که حدس زدن به‌جای سکوت صادقانه، ریسک اشتباه
+    // دارد (هم‌الگوی سکوت goalkeeperها).
+    similar_sports: { by_anthropometry: [], by_performance: [], by_psychology: [] },
+  },
+
+  basketball_shooter: {
+    id: "basketball_shooter",
+    name_fa: "بسکتبال - گارد شوت‌زن",
+    name_en: "Basketball - Shooting Guard",
+    category: "team_ball",
+    subcategory: "shooter",
+    is_position_specific: true,
+    parent_sport: "basketball",
+
+    anthropometric_bonuses: {},
+    composition_bonuses: {},
+    biometric_bonuses: {},
+
+    // wall_toss به‌عنوان جایگزین توان بالاتنه/رهایی شوت استفاده شد (هم‌الگوی
+    // volleyball_middle_blocker) — هیچ تست دقیق «مکانیک شوت» در دستگاه
+    // موجود نیست.
+    performance_weights: {
+      vertical_jump: 0.25,
+      agility_5_10_5: 0.25,
+      sprint_10m: 0.15,
+      wall_toss: 0.15,
+      broad_jump: 0.1,
+      beep_test: 0.1,
+    },
+    critical_perf_tests: ["vertical_jump", "agility_5_10_5"],
+
+    psych_requirements: {
+      teamwork_score: 3,
+      aggression_contact: 2,
+      focus_patience: 5,
+      pressure_tolerance: 5,
+      dynamic_activity: 4,
+      chaos_decision: 3,
+      resilience: 4,
+    },
+    trait_importance: {
+      focus_patience: 1.5,
+      pressure_tolerance: 1.5,
+      dynamic_activity: 1,
+      chaos_decision: 1,
+      teamwork_score: 1,
+      aggression_contact: 0.5,
+      resilience: 1,
+    },
+
+    minimum_bio_age_recommended: 10,
+    is_recommended_early_specialization: false,
+    ltad_stage: "LearningToTrain",
+
+    postural_contraindications: ["genu_valgum", "genu_varum"],
+    medical_contraindications: [
+      "active_meniscus_tear",
+      "active_acl_partial_tear",
+      "active_ankle_sprain_grade_2_or_3",
+      "active_shoulder_impingement",
+    ],
+
+    similar_sports: { by_anthropometry: [], by_performance: [], by_psychology: [] },
+  },
+
+  basketball_center: {
+    id: "basketball_center",
+    name_fa: "بسکتبال - سنتر",
+    name_en: "Basketball - Center",
+    category: "team_ball",
+    subcategory: "center",
+    is_position_specific: true,
+    parent_sport: "basketball",
+
+    // ape_index_high برای دهانه‌ی دست (بلاک/ریباند) — معیار شناخته‌شده‌ی
+    // استعدادیابی بسکتبال؛ آستانه‌ی قد بالاتر از volleyball_middle_blocker،
+    // مطابق میانگین قد سنترهای نخبه.
+    anthropometric_bonuses: {
+      tall_stature: { threshold_cm_male: 200, threshold_cm_female: 185, bonus: 20 },
+      ape_index_high: 15,
+    },
+    composition_bonuses: { smm_high: 15 },
+    biometric_bonuses: { bilateral_asymmetry_high: -15 },
+
+    performance_weights: {
+      vertical_jump: 0.3,
+      pushups: 0.2,
+      handgrip: 0.15,
+      broad_jump: 0.15,
+      beep_test: 0.1,
+      agility_5_10_5: 0.1,
+    },
+    critical_perf_tests: ["vertical_jump", "pushups"],
+
+    psych_requirements: {
+      teamwork_score: 3,
+      aggression_contact: 5,
+      focus_patience: 4,
+      pressure_tolerance: 4,
+      dynamic_activity: 2,
+      chaos_decision: 2,
+      resilience: 4,
+    },
+    trait_importance: {
+      aggression_contact: 2,
+      focus_patience: 1,
+      pressure_tolerance: 1,
+      teamwork_score: 1,
+      dynamic_activity: 0.5,
+      chaos_decision: 0.5,
+      resilience: 1,
+    },
+
+    minimum_bio_age_recommended: 10,
+    is_recommended_early_specialization: false,
+    ltad_stage: "LearningToTrain",
+
+    postural_contraindications: ["genu_valgum", "genu_varum"],
+    medical_contraindications: [
+      "active_meniscus_tear",
+      "active_acl_partial_tear",
+      "active_ankle_sprain_grade_2_or_3",
+      "active_shoulder_impingement",
+    ],
+
+    // اطمینان ضعیف-استنتاجی (۱ دسته): ارجاع متقابلِ ارتباط خفته‌ی
+    // volleyball_middle_blocker.similar_sports.by_anthropometry (از
+    // Commit 1) — قد بلند + پرش هوایی مشترک، نه سازوکار روانی یکسان (رجوع
+    // کنید به تحلیل تمایز psych تأییدشده‌ی این Commit).
+    similar_sports: {
+      by_anthropometry: ["volleyball_middle_blocker"],
+      by_performance: [],
+      by_psychology: [],
+    },
+  },
+
+  volleyball_setter: {
+    id: "volleyball_setter",
+    name_fa: "والیبال - پاسور",
+    name_en: "Volleyball - Setter",
+    category: "team_ball",
+    subcategory: "setter",
+    is_position_specific: true,
+    parent_sport: "volleyball",
+
+    // صادقانه خالی: پاسور در والیبال واقعی کوتاه‌ترین پست نیست، ولی قد
+    // معیار اول انتخابش نیست (برخلاف outside/middle_blocker) — چابکی و
+    // کنترل توپ اولویت دارد.
+    anthropometric_bonuses: {},
+    composition_bonuses: {},
+    biometric_bonuses: { balance_score_high: 10 },
+
+    performance_weights: {
+      agility_5_10_5: 0.3,
+      sit_and_reach: 0.15,
+      broad_jump: 0.15,
+      vertical_jump: 0.15,
+      handgrip: 0.15,
+      beep_test: 0.1,
+    },
+    critical_perf_tests: ["agility_5_10_5"],
+
+    psych_requirements: {
+      teamwork_score: 5,
+      aggression_contact: 2,
+      focus_patience: 5,
+      pressure_tolerance: 5,
+      dynamic_activity: 4,
+      chaos_decision: 5,
+      resilience: 4,
+    },
+    trait_importance: {
+      teamwork_score: 1.5,
+      chaos_decision: 1.5,
+      focus_patience: 1.5,
+      pressure_tolerance: 1,
+      dynamic_activity: 1,
+      aggression_contact: 0.5,
+      resilience: 1,
+    },
+
+    minimum_bio_age_recommended: 11,
+    is_recommended_early_specialization: false,
+    ltad_stage: "TrainingToTrain",
+
+    // ⚠️ مورد ضعیف‌تر گروه (تصمیم تاییدشده‌ی Commit 18): ست‌زنی هم بالای سر
+    // انجام می‌شود، اما اکستنشن/retraction تنه‌اش به‌مراتب خفیف‌تر از اسپک
+    // (volleyball_outside/MB) است. چون سند/رشته عدد جداگانه‌ای نداده، همان
+    // مقدار MB بازاستفاده شد (نه یک عدد حدسی جدید) — رجوع کنید به
+    // posturalSportImpactMap.js/activePathologyMap.js برای همین کامنت.
+    postural_contraindications: ["kyphosis", "rounded_shoulder", "genu_valgum", "genu_varum"],
+    medical_contraindications: [
+      "active_disc_herniation",
+      "active_shoulder_impingement",
+      "active_meniscus_tear",
+      "active_ankle_sprain_grade_2_or_3",
+    ],
+
+    // اطمینان ضعیف-استنتاجی (۱ دسته): بالاترین chaos_decision هر دو رشته
+    // (خواندن آنی بازی/دفاع)، نه پروفایل فیزیکی یکسان.
+    similar_sports: { by_anthropometry: [], by_performance: [], by_psychology: ["soccer_winger"] },
+  },
+
+  volleyball_libero: {
+    id: "volleyball_libero",
+    name_fa: "والیبال - لیبرو",
+    name_en: "Volleyball - Libero",
+    category: "team_ball",
+    subcategory: "libero",
+    is_position_specific: true,
+    parent_sport: "volleyball",
+
+    // صادقانه بدون tall_stature: طبق قوانین FIVB لیبرو حق حمله بالای تور
+    // یا بلاک زدن ندارد؛ در عمل بازیکنان کوتاه‌تر و چابک‌تر برای این پست
+    // ترجیح داده می‌شوند — بونوس قد اینجا معنا ندارد.
+    anthropometric_bonuses: {},
+    composition_bonuses: { bf_very_low: 10 },
+    biometric_bonuses: { balance_score_high: 15 },
+
+    // عمداً بدون vertical_jump: قانون FIVB به لیبرو اجازه‌ی حمله/بلاک
+    // بالای تور نمی‌دهد، پس این تست برای این پست بی‌ربط است، نه فراموش‌شده.
+    performance_weights: {
+      agility_5_10_5: 0.35,
+      sit_and_reach: 0.2,
+      broad_jump: 0.15,
+      sprint_10m: 0.15,
+      beep_test: 0.15,
+    },
+    critical_perf_tests: ["agility_5_10_5"],
+
+    psych_requirements: {
+      teamwork_score: 4,
+      aggression_contact: 2,
+      focus_patience: 5,
+      pressure_tolerance: 4,
+      dynamic_activity: 5,
+      chaos_decision: 4,
+      resilience: 5,
+    },
+    trait_importance: {
+      resilience: 1.5,
+      dynamic_activity: 1.5,
+      focus_patience: 1.5,
+      teamwork_score: 1,
+      pressure_tolerance: 1,
+      chaos_decision: 1,
+      aggression_contact: 0.5,
+    },
+
+    minimum_bio_age_recommended: 11,
+    is_recommended_early_specialization: false,
+    ltad_stage: "TrainingToTrain",
+
+    // ⚠️ تصمیم تاییدشده‌ی Commit 18 — قوی‌ترین استثنای کل این Commit: طبق
+    // قانون رسمی FIVB (نه استنتاج بیومکانیکی)، لیبرو حق حمله بالای تور یا
+    // بلاک زدن ندارد؛ بنابراین هر پنالتی‌ای که سازوکارش «حمله/اکستنشن کامل
+    // تنه بالای سر» است (kyphosis، rounded_shoulder، shoulder_impingement،
+    // disc_herniation) عمداً برای این پست حذف شد، نه فراموش. ریسک زانو/مچ‌پا
+    // (از شیرجه و اسکرمبل دفاعی) و meniscus (پیچش زانو حین دیفنس) همچنان
+    // واقعی است و نگه داشته شد.
+    postural_contraindications: [],
+    medical_contraindications: ["active_meniscus_tear", "active_ankle_sprain_grade_2_or_3"],
+
+    similar_sports: { by_anthropometry: [], by_performance: [], by_psychology: [] },
+  },
+
+  volleyball_outside: {
+    id: "volleyball_outside",
+    name_fa: "والیبال - پشت‌خط زن (اوت‌ساید)",
+    name_en: "Volleyball - Outside Hitter",
+    category: "team_ball",
+    subcategory: "outside_hitter",
+    is_position_specific: true,
+    parent_sport: "volleyball",
+
+    anthropometric_bonuses: {
+      tall_stature: { threshold_cm_male: 190, threshold_cm_female: 175, bonus: 15 },
+      ape_index_high: 15,
+    },
+    composition_bonuses: { bf_very_low: 10 },
+    biometric_bonuses: { bilateral_asymmetry_high: -15 },
+
+    // beep_test بحرانی طبق دانش استاندارد والیبال: اوت‌ساید تقریباً در همه‌ی
+    // چرخش‌ها بازی می‌کند (پاس+حمله+بلاک+دفاع)، پرتکرارترین/پراستقامت‌ترین
+    // پست زمین.
+    performance_weights: {
+      vertical_jump: 0.25,
+      broad_jump: 0.15,
+      sprint_10m: 0.15,
+      agility_5_10_5: 0.15,
+      beep_test: 0.15,
+      wall_toss: 0.15,
+    },
+    critical_perf_tests: ["vertical_jump", "beep_test"],
+
+    psych_requirements: {
+      teamwork_score: 4,
+      aggression_contact: 4,
+      focus_patience: 3,
+      pressure_tolerance: 5,
+      dynamic_activity: 5,
+      chaos_decision: 3,
+      resilience: 4,
+    },
+    trait_importance: {
+      pressure_tolerance: 1.5,
+      dynamic_activity: 1.5,
+      aggression_contact: 1,
+      teamwork_score: 1,
+      resilience: 1,
+      focus_patience: 1,
+      chaos_decision: 0.5,
+    },
+
+    minimum_bio_age_recommended: 11,
+    is_recommended_early_specialization: false,
+    ltad_stage: "TrainingToTrain",
+
+    // کپی مستقیم از volleyball_middle_blocker (همان سازوکار حمله/اکستنشن
+    // تنه) — قوی‌ترین مورد این گروه، نه یک عدد حدسی جدید.
+    postural_contraindications: ["kyphosis", "rounded_shoulder", "genu_valgum", "genu_varum"],
+    medical_contraindications: [
+      "active_disc_herniation",
+      "active_shoulder_impingement",
+      "active_meniscus_tear",
+      "active_ankle_sprain_grade_2_or_3",
+    ],
+
+    // اطمینان قوی-مستند (۱ دسته، ولی متقابلِ ارجاع خفته‌ی خودِ Commit 1):
+    // volleyball_middle_blocker.similar_sports.by_psychology از قبل شامل
+    // "volleyball_outside" است.
+    similar_sports: {
+      by_anthropometry: [],
+      by_performance: [],
+      by_psychology: ["volleyball_middle_blocker"],
+    },
+  },
+
   // ─── رزمی ───────────────────────────────────────────────────────────────
   wrestling_greco: {
     id: "wrestling_greco",

@@ -75,10 +75,14 @@ const VALID_ACTIVE_CONDITION_KEYS = new Set([
   const { calculateBioScores } = await import("../engine/talentId/file4_bioScoreCalculator.js");
 
   console.log("\n[تعداد کل رشته‌ها بعد از Commit 17]");
-  check("sportRequirementMatrix دقیقاً ۲۹ رشته دارد (۵ قبلی + ۲۴ جدید)", () => {
+  // ⚠️ به‌روزرسانی Commit 18: از "دقیقاً ۲۹" به "حداقل ۲۹" تغییر کرد
+  // (هم‌الگوی تصحیح sportmatrix-seed.js در Commit 17) — این فایل روی
+  // sportRequirementMatrix زنده چک می‌کند که با هر Commit بعدی (۱۸، ۱۹...)
+  // رشد می‌کند؛ این تست فقط تضمین می‌کند ۲۹ رشته‌ی Commit 17 زیرمجموعه‌اند.
+  check("sportRequirementMatrix حداقل ۲۹ رشته دارد (۵ قبلی + ۲۴ Commit 17، زیرمجموعه‌ی Commitهای بعدی)", () => {
     assert(
-      Object.keys(sportRequirementMatrix).length === 29,
-      `انتظار ۲۹، گرفتیم ${Object.keys(sportRequirementMatrix).length}`
+      Object.keys(sportRequirementMatrix).length >= 29,
+      `انتظار حداقل ۲۹، گرفتیم ${Object.keys(sportRequirementMatrix).length}`
     );
   });
   check(`دقیقاً ${NEW_SPORT_IDS.length} رشته‌ی جدید همه در matrix حاضرند`, () => {
@@ -128,7 +132,7 @@ const VALID_ACTIVE_CONDITION_KEYS = new Set([
       demographics: { biological_sex: "male" },
     };
     const scores = calculateBioScores(sportRequirementMatrix, normalizedIntake);
-    assert(Object.keys(scores).length === 29, `انتظار ۲۹ رشته در خروجی، گرفتیم ${Object.keys(scores).length}`);
+    assert(Object.keys(scores).length >= 29, `انتظار حداقل ۲۹ رشته در خروجی، گرفتیم ${Object.keys(scores).length}`);
     for (const sportId of Object.keys(sportRequirementMatrix)) {
       assert(Number.isFinite(scores[sportId].final_bio_score), `${sportId}: final_bio_score باید عدد معتبر باشد`);
     }

@@ -33,6 +33,12 @@ const activePathologyMap = {
       cycling: "safe",
       shooting: "safe",
       chess: "safe",
+      // ⚠️ افزوده‌شده در Commit 18 (کپی مستقیم از volleyball عمومی موجود).
+      // basketball عمداً بدون تغییر ماند — این نقشه از قبل هیچ کلید
+      // "basketball" ندارد (گپ موجود از Commit 10). libero عمداً حذف شد
+      // (بدون حمله بالای تور، طبق قانون رسمی FIVB).
+      volleyball_setter: "moderate_risk",
+      volleyball_outside: "moderate_risk",
     },
     reason: "فتق دیسک فعال + بار محوری روی ستون فقرات = ریسک بالای تشدید",
   },
@@ -52,6 +58,24 @@ const activePathologyMap = {
       soccer: "safe",
       soccer_striker: "safe",
       cycling: "safe",
+      // ⚠️ افزوده‌شده در Commit 18: basketball_playmaker/shooter/center کپی
+      // مستقیم basketball عمومی (بدون تمایز پستی، سند خودش هم تمایز نداده).
+      // volleyball_setter/outside کپی مستقیم volleyball عمومی. libero عمداً
+      // حذف شد (بدون حمله بالای تور، طبق قانون رسمی FIVB — رجوع کنید به
+      // sportRequirementMatrix.js).
+      basketball_playmaker: "high_risk",
+      basketball_shooter: "high_risk",
+      basketball_center: "high_risk",
+      volleyball_setter: "high_risk",
+      volleyball_outside: "high_risk",
+      // ⚠️ انحراف از soccer عمومی («safe») — تصمیم تاییدشده‌ی Commit 18:
+      // این یک استنتاج بیومکانیکی معقول (شیرجه/گرفتن بالای سر = ریسک
+      // shoulder overuse شناخته‌شده در ادبیات دروازه‌بانی) است، **نه**
+      // برگرفته از یک مطالعه‌ی اپیدمیولوژیک خاص با عدد مشخص — هم‌سطح صداقت
+      // افشای body_fat زنانه (Commit 5) و wushu_sanda (Commit 17)؛
+      // moderate_risk (نه high_risk مثل شنا/هندبال) چون حرکت شیرجه متناوب
+      // است، نه تکراری/Overhead مداوم مثل شنا.
+      soccer_goalkeeper: "moderate_risk",
     },
     reason: "گیرگیری/پارگی روتاتور کاف + حرکات Overhead = تشدید و پارگی کامل",
   },
@@ -72,6 +96,19 @@ const activePathologyMap = {
       swimming_general: "safe",
       rowing: "safe",
       chess: "safe",
+      // ⚠️ افزوده‌شده در Commit 18 (کپی مستقیم از soccer/basketball/volleyball
+      // عمومی موجود، نه عدد تازه). soccer_goalkeeper عمداً حذف شد (مکانیزم
+      // Pivot Turn روی زانو برای این پست کمتر مستند است تا outfield).
+      soccer_center_back: "high_risk",
+      soccer_full_back: "high_risk",
+      soccer_defensive_mid: "high_risk",
+      soccer_winger: "high_risk",
+      basketball_playmaker: "high_risk",
+      basketball_shooter: "high_risk",
+      basketball_center: "high_risk",
+      volleyball_setter: "high_risk",
+      volleyball_outside: "high_risk",
+      volleyball_libero: "high_risk",
     },
     reason: "پارگی مینیسک + Pivot Turn = گیر افتادن مفصل و ریسک قفل شدن زانو",
   },
@@ -87,6 +124,18 @@ const activePathologyMap = {
       skiing: "critical_risk",
       swimming: "safe",
       swimming_general: "safe",
+      // ⚠️ افزوده‌شده در Commit 18 (کپی مستقیم از soccer/basketball عمومی
+      // موجود). volleyball عمداً بدون تغییر ماند — این نقشه از قبل هیچ
+      // کلید "volleyball" ندارد (گپ موجود از Commit 10، طبق اصل «چیزی که
+      // مطمئن نیستی حدس نزن» چیزی برایش اضافه نشد)؛ soccer_goalkeeper هم
+      // عمداً حذف شد، هم‌الگوی active_meniscus_tear بالا.
+      soccer_center_back: "critical_risk",
+      soccer_full_back: "critical_risk",
+      soccer_defensive_mid: "critical_risk",
+      soccer_winger: "critical_risk",
+      basketball_playmaker: "critical_risk",
+      basketball_shooter: "critical_risk",
+      basketball_center: "critical_risk",
     },
     reason: "پارگی جزئی ACL + چرخش/توقف ناگهانی = ریسک پارگی کامل",
   },
@@ -148,6 +197,22 @@ const activePathologyMap = {
       sprint_running: "high_risk",
       swimming: "safe",
       swimming_general: "safe",
+      // ⚠️ افزوده‌شده در Commit 18 (کپی مستقیم از soccer/basketball/volleyball
+      // عمومی موجود). soccer_goalkeeper عمداً حذف شد (الگوی حرکتی متفاوت —
+      // رجوع کنید به کامنت‌های goalkeeper در sportRequirementMatrix.js).
+      // volleyball_libero عمداً *نگه داشته شد* (برخلاف پنالتی‌های حمله‌محور
+      // بالاتر) چون اسکرمبل/شیرجه‌ی دفاعی، نه حمله، ریسک مچ‌پا را ایجاد
+      // می‌کند.
+      soccer_center_back: "high_risk",
+      soccer_full_back: "high_risk",
+      soccer_defensive_mid: "high_risk",
+      soccer_winger: "high_risk",
+      basketball_playmaker: "high_risk",
+      basketball_shooter: "high_risk",
+      basketball_center: "high_risk",
+      volleyball_setter: "high_risk",
+      volleyball_outside: "high_risk",
+      volleyball_libero: "high_risk",
     },
   },
 };
