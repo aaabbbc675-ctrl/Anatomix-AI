@@ -30,6 +30,7 @@ import { synthesizeScoreForSport, computeDynamicWeights, BASELINE_CI_INPUTS } fr
 import { PSYCH_TRAITS } from "./shared/sportRequirementSchema.js";
 import { generateCoachNarrative, generateClientNarrative } from "./shared/explanationTemplates.js";
 import { TalentIdError } from "./shared/talentIdErrors.js";
+import { sensitivePeriodsLTAD } from "./shared/sensitivePeriodsLTAD.js";
 
 // طبق بخش ۱۴.۳ سند pseudocode (خط ~۲۳۵۰/۲۶۱۲): >=85 → A، >=70 → B، else C.
 const TIER_A_MIN = 85;
@@ -472,6 +473,66 @@ function generateMatchReports(sportRequirementMatrix, sources) {
   return reports;
 }
 
+// ─────────────────────────────────────────────────────────────────────────
+// Commit 20 (بخش ۱۹ سند معماری) — پنجره‌های حساس LTAD.
+//
+// ⚠️ عمداً به‌عنوان لایه‌ی جدا و pure اضافه شد، نه به‌صورت تغییر داخل
+// generateMatchReport/generateMatchReports (تصمیم تاییدشده‌ی Commit 20):
+// ۱) `ctx`/`sources` که به generateMatchReport پاس داده می‌شود اصلاً
+//    biological_sex ندارد (فقط maturityProfile.biological_age) — افزودن آن
+//    یعنی تغییر قرارداد ورودی چیزی که با ۲۵ تست و ۲ regression guard قبلاً
+//    commit شده. ۲) ltad_notes ذاتاً athlete-level است نه sport-level (فقط
+//    تابعی از bioAge/sex، هیچ ارتباطی به sportEntry ندارد — دقیقاً هم‌الگوی
+//    امضای attachSensitivePeriodNotes خودِ سند که هیچ پارامتر sportId ندارد)
+//    پس یکسان بودن آن برای هر ۵۲ رشته‌ی یک ورزشکار طراحی درست است، نه یک گپ.
+//
+// ⚠️ انحراف عمدی از pseudocode بخش ۱۹.۳ سند: نسخه‌ی سند با
+// `matchReport.ltad_notes = notes` ورودی را mutate می‌کند — با قرارداد
+// pure-function کل این موتور (هیچ فایلی ورودی خودش را mutate نمی‌کند)
+// ناسازگار است. اینجا همیشه یک آبجکت/آرایه‌ی *جدید* برگردانده می‌شود.
+//
+// ⚠️ رفع باگ pseudocode سند: `config.windows[sex] ?? config.windows.universal`
+// برای ۵ توانایی از ۶ تا (همه به‌جز flexibility) کلید universal اصلاً وجود
+// ندارد؛ اگر sex چیزی غیر از 'male'/'female' باشد (تئوریک — file1 از قبل
+// این enum را validate می‌کند، اما دفاعی مهم است)، window می‌شود undefined
+// و دسترسی به start_bio_age throw می‌کند. اینجا در آن حالت آن توانایی
+// به‌سادگی skip می‌شود (هم‌الگوی «severity ناشناخته → رد می‌شود بدون throw»
+// در سراسر این موتور)، نه throw.
+function _resolveSensitivePeriodWindow(config, sex) {
+  return config.windows[sex] ?? config.windows.universal;
+}
+
+function computeSensitivePeriodNotes(bioAge, sex) {
+  if (!Number.isFinite(bioAge)) return [];
+
+  const notes = [];
+  for (const [ability, config] of Object.entries(sensitivePeriodsLTAD)) {
+    const window = _resolveSensitivePeriodWindow(config, sex);
+    if (!window) continue; // بدون window قابل‌resolve — skip، نه throw
+    if (bioAge >= window.start_bio_age && bioAge <= window.end_bio_age) {
+      notes.push({
+        ability,
+        ability_label_fa: config.ability_label_fa,
+        description_fa: config.description_fa,
+        confidence: config.confidence,
+      });
+    }
+  }
+  return notes;
+}
+
+// طبق بخش ۱۹.۳ سند (با انحراف عمدی توضیح‌داده‌شده‌ی بالا): notes یکسان
+// برای هر رشته‌ی خروجی generateMatchReports پیوست می‌شود — bioAge/sex
+// مستقیماً به‌عنوان پارامتر ساده گرفته می‌شوند، نه از طریق bag سنگین sources.
+function attachSensitivePeriodNotesToReports(reports, bioAge, sex) {
+  const notes = computeSensitivePeriodNotes(bioAge, sex);
+  const withNotes = {};
+  for (const [sportId, report] of Object.entries(reports)) {
+    withNotes[sportId] = { ...report, ltad_notes: notes };
+  }
+  return withNotes;
+}
+
 export {
   generateMatchReports,
   generateMatchReport,
@@ -480,4 +541,6 @@ export {
   TIER_B_MIN,
   WHATIF_MIN_GAIN_THRESHOLD,
   WHATIF_MAX_CORRECTIONS,
+  computeSensitivePeriodNotes,
+  attachSensitivePeriodNotesToReports,
 };
