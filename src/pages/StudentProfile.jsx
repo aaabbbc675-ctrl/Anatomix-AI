@@ -15,7 +15,7 @@ function formatLastScanDate(student) {
   return new Date(attachedAt).toLocaleDateString("fa-IR");
 }
 
-export default function StudentProfile({ studentId, onBack, onNewProgram }) {
+export default function StudentProfile({ studentId, onBack, onNewProgram, onNewTalentAssessment }) {
   const [student, setStudent] = useState(null);
   const [programs, setPrograms] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -57,7 +57,11 @@ export default function StudentProfile({ studentId, onBack, onNewProgram }) {
           <p>آخرین اسکن: {formatLastScanDate(student)}</p>
 
           <div style={{ margin: "1.5rem 0" }}>
-            <button onClick={onNewProgram}>+ برنامه جدید</button>
+            <button onClick={onNewProgram}>+ برنامه جدید</button>{" "}
+            {/* جریان مستقل از NewProgramWizard (تصمیم تاییدشده‌ی Commit 21): استعدادیابی «Program» نیست. */}
+            {onNewTalentAssessment && (
+              <button onClick={() => onNewTalentAssessment(student.full_name)}>+ ارزیابی استعداد</button>
+            )}
           </div>
 
           <h3>تاریخچه‌ی برنامه‌ها</h3>
