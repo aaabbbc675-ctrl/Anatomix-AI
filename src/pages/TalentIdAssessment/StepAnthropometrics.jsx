@@ -22,7 +22,12 @@ export default function StepAnthropometrics({ form, updateField, onNext, onBack 
       <fieldset style={{ marginTop: "1rem" }}>
         <legend>ترکیب بدنی (BIA)</legend>
         <NumberField label="درصد چربی بدن" suffix="٪" value={form.body_fat_percent} onChange={(v) => updateField("body_fat_percent", v)} />
-        <NumberField label="توده‌ی عضلانی اسکلتی" suffix="کیلوگرم" value={form.skeletal_muscle_mass_kg} onChange={(v) => updateField("skeletal_muscle_mass_kg", v)} />
+        <NumberField
+          label="درصد عضله‌ی اسکلتی نسبت به وزن کل"
+          suffix="٪"
+          value={form.smm_percent_of_body_weight}
+          onChange={(v) => updateField("smm_percent_of_body_weight", v)}
+        />
         <NumberField label="درصد آب کل بدن" suffix="٪" value={form.total_body_water_percent} onChange={(v) => updateField("total_body_water_percent", v)} />
         <NumberField label="توده‌ی بدون چربی (FFM)" suffix="کیلوگرم" value={form.fat_free_mass_kg} onChange={(v) => updateField("fat_free_mass_kg", v)} />
       </fieldset>

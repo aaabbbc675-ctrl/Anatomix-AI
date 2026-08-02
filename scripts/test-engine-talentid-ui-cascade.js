@@ -45,9 +45,13 @@ function assert(condition, message) {
         shoulder_width_cm: 38,
         hip_width_cm: 26,
       },
-      body_composition_bia: { body_fat_percent: 12, skeletal_muscle_mass_kg: 20, total_body_water_percent: 60, fat_free_mass_kg: 39 },
+      // ⚠️ رفع باگ Commit 22: قبلاً "skeletal_muscle_mass_kg" بود — کلید
+      // اشتباه، مصرف نمی‌شد (رجوع کنید به کامنت DEVICE_FIELD_PATHS در
+      // file1_intakeInputs.js). مصرف واقعی smm_percent_of_body_weight است.
+      body_composition_bia: { body_fat_percent: 12, smm_percent_of_body_weight: 42, total_body_water_percent: 60, fat_free_mass_kg: 39 },
       biometric: { resting_heart_rate_bpm: 65, balance_score_0_to_10: 7, bilateral_weight_asymmetry_percent: 3 },
-      posture: { kyphosis: 2, genu_valgum: 1 },
+      // ⚠️ رفع باگ Commit 22: posture[type] باید {severity:N} باشد.
+      posture: { kyphosis: { severity: 2 }, genu_valgum: { severity: 1 } },
       rom_deficits: { hamstring_short: "mild_short" },
       hypermobility_detected: false,
       ...overrides,
@@ -71,7 +75,7 @@ function assert(condition, message) {
         sit_and_reach_cm: 10,
         wall_toss_30sec_count: 15,
       },
-      medical_history: { active_injuries: [], chronic_conditions: [], pain_scale_current_max_0_to_10: 0, physician_clearance_status: null },
+      medical_history: { active_injuries: [], chronic_conditions: [], pain_scale_current_max_0_to_10: 0, physician_clearance: null },
       family_sport_history: { parent_athletes: true, elite_relatives: false },
       ...overrides,
     };
@@ -147,7 +151,7 @@ function assert(condition, message) {
   check("رشته‌ی high_risk (wrestling_freestyle) وقتی active_disc_herniation ثبت شده → final_tier='M'", () => {
     const withInjury = runTalentIdAssessment(
       sampleRawDevice(),
-      sampleRawCoach({ medical_history: { active_injuries: ["active_disc_herniation"], chronic_conditions: [], pain_scale_current_max_0_to_10: 5, physician_clearance_status: null } }),
+      sampleRawCoach({ medical_history: { active_injuries: ["active_disc_herniation"], chronic_conditions: [], pain_scale_current_max_0_to_10: 5, physician_clearance: null } }),
       sampleRawChatbot,
       "تست پزشکی"
     );
@@ -186,15 +190,57 @@ function assert(condition, message) {
     assert(JSON.stringify(rawCoach.performance_tests.vertical_jump_cm) === JSON.stringify([38, null, 40]));
   });
   check("posture/rom_deficits مستقیم و بدون تغییر عبور می‌کنند", () => {
-    const form = { ...defaultTalentIdForm(), posture: { kyphosis: 3 } };
+    // ⚠️ رفع باگ Commit 22: posture[type] باید {severity:N} باشد (نه عدد
+    // خام) تا واقعاً توسط computePosturalAdjustments (file5) خوانده شود.
+    const form = { ...defaultTalentIdForm(), posture: { kyphosis: { severity: 3 } } };
     const { rawDevice } = buildRawInputsFromForm(form);
-    assert(rawDevice.posture.kyphosis === 3);
+    assert(rawDevice.posture.kyphosis.severity === 3);
   });
   check("خروجی buildRawInputsFromForm مستقیماً بدون throw به runTalentIdAssessment قابل پاس‌دادن است (فرم پیش‌فرض به‌تنهایی چون سن/قد پیش‌فرض معتبرند)", () => {
     const form = { ...defaultTalentIdForm(), date_of_birth: "2013-04-15", standing_height_cm: 155, sitting_height_cm: 78, weight_kg: 45, body_fat_percent: 12 };
     const { rawDevice, rawCoach, rawChatbot } = buildRawInputsFromForm(form);
     const r = runTalentIdAssessment(rawDevice, rawCoach, rawChatbot, null);
     assert(Object.keys(r.matchReports).length === SPORT_COUNT);
+  });
+
+  console.log("\n[رگرسیون مسیر واقعی فرم — چون یونیت‌تست‌های دستی هر دو باگ زیر را قایم کرده بودند]");
+  check("مسیر واقعی UI (buildRawInputsFromForm) → smm_high واقعاً trigger می‌شود، نه فقط normalizedIntake دستی", () => {
+    const form = {
+      ...defaultTalentIdForm(),
+      date_of_birth: "2013-04-15",
+      standing_height_cm: 170,
+      sitting_height_cm: 85,
+      weight_kg: 60,
+      body_fat_percent: 12,
+      smm_percent_of_body_weight: 50, // >47 → باید smm_high را trigger کند
+    };
+    const { rawDevice, rawCoach, rawChatbot } = buildRawInputsFromForm(form);
+    const r = runTalentIdAssessment(rawDevice, rawCoach, rawChatbot, null);
+    const wlDrivers = r.matchReports.weightlifting_olympic.top_positive_drivers.map((d) => d.driver_id);
+    assert(wlDrivers.includes("composition.smm_high"), `composition.smm_high باید در driverها باشد؛ گرفتیم: ${JSON.stringify(wlDrivers)}`);
+  });
+  check("مسیر واقعی UI (buildRawInputsFromForm) → پنالتی پوسچرال واقعاً اعمال می‌شود، نه فقط normalizedIntake دستی", () => {
+    const formNoPosture = {
+      ...defaultTalentIdForm(),
+      date_of_birth: "2013-04-15",
+      standing_height_cm: 155,
+      sitting_height_cm: 78,
+      weight_kg: 45,
+      body_fat_percent: 12,
+    };
+    const formWithKyphosis = { ...formNoPosture, posture: { ...formNoPosture.posture, kyphosis: { severity: 3 } } };
+
+    const noPostureInputs = buildRawInputsFromForm(formNoPosture);
+    const withKyphosisInputs = buildRawInputsFromForm(formWithKyphosis);
+    const baseline = runTalentIdAssessment(noPostureInputs.rawDevice, noPostureInputs.rawCoach, noPostureInputs.rawChatbot, null);
+    const withKyphosis = runTalentIdAssessment(withKyphosisInputs.rawDevice, withKyphosisInputs.rawCoach, withKyphosisInputs.rawChatbot, null);
+
+    assert(
+      withKyphosis.matchReports.weightlifting_olympic.final_score < baseline.matchReports.weightlifting_olympic.final_score,
+      `کایفوز باید امتیاز را کم کند؛ baseline=${baseline.matchReports.weightlifting_olympic.final_score}, withKyphosis=${withKyphosis.matchReports.weightlifting_olympic.final_score}`
+    );
+    const penalty = withKyphosis.matchReports.weightlifting_olympic.score_breakdown.postural_rom_penalty_applied.postural;
+    assert(penalty === -25, `پنالتی پوسچرال باید دقیقاً -۲۵ باشد (کایفوز severity=۳)، گرفتیم ${penalty}`);
   });
 
   console.log(`\n${"─".repeat(60)}`);

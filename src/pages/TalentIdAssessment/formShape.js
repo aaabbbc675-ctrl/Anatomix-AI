@@ -66,12 +66,16 @@ export function defaultTalentIdForm() {
     shoulder_width_cm: "",
     hip_width_cm: "",
     body_fat_percent: 15,
-    skeletal_muscle_mass_kg: "",
+    smm_percent_of_body_weight: "",
     total_body_water_percent: "",
     fat_free_mass_kg: "",
 
     // Step 3 — پوسچرال / ROM / بیومتریک
-    posture: Object.fromEntries(POSTURE_TYPES.map((p) => [p.key, 0])),
+    // ⚠️ رفع باگ Commit 22 (کشف‌شده حین ساخت caseB E2E): computePosturalAdjustments
+    // (file5, خط ۹۳) انتظار posture[type]={severity:N} دارد، نه عدد خام — هم‌شکل
+    // نمونه‌ی خودِ سند (بخش ۲.۱: posture.kyphosis={severity:2,...}). قبلاً عدد
+    // خام بود که یعنی هیچ پنالتی پوسچرالی هرگز واقعاً اعمال نمی‌شد.
+    posture: Object.fromEntries(POSTURE_TYPES.map((p) => [p.key, { severity: 0 }])),
     rom_deficits: Object.fromEntries(ROM_DEFICIT_TYPES.map((r) => [r.key, "normal"])),
     hypermobility_detected: false,
     resting_heart_rate_bpm: 70,
@@ -96,7 +100,12 @@ export function defaultTalentIdForm() {
     active_injuries: [],
     chronic_conditions: [],
     pain_scale_current_max_0_to_10: 0,
-    physician_clearance_status: "",
+    // ⚠️ رفع باگ Commit 22: physician_clearance باید ساختاریافته باشد
+    // (cleared_sports/date/notes)، نه یک رشته‌ی وضعیت آزاد — رجوع کنید به
+    // کامنت normalizeMedical در file1_intakeInputs.js.
+    physician_clearance_sports: [],
+    physician_clearance_date: "",
+    physician_clearance_notes: "",
     parent_athletes: false,
     elite_relatives: false,
 
@@ -127,7 +136,7 @@ export function buildRawInputsFromForm(form) {
     },
     body_composition_bia: {
       body_fat_percent: toNumOrNull(form.body_fat_percent),
-      skeletal_muscle_mass_kg: toNumOrNull(form.skeletal_muscle_mass_kg),
+      smm_percent_of_body_weight: toNumOrNull(form.smm_percent_of_body_weight),
       total_body_water_percent: toNumOrNull(form.total_body_water_percent),
       fat_free_mass_kg: toNumOrNull(form.fat_free_mass_kg),
     },
@@ -165,7 +174,14 @@ export function buildRawInputsFromForm(form) {
       active_injuries: form.active_injuries,
       chronic_conditions: form.chronic_conditions,
       pain_scale_current_max_0_to_10: form.pain_scale_current_max_0_to_10,
-      physician_clearance_status: form.physician_clearance_status || null,
+      physician_clearance:
+        form.physician_clearance_sports.length > 0
+          ? {
+              cleared_sports: form.physician_clearance_sports,
+              date: form.physician_clearance_date || null,
+              notes: form.physician_clearance_notes || null,
+            }
+          : null,
     },
     family_sport_history: {
       parent_athletes: form.parent_athletes,

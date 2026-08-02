@@ -104,7 +104,7 @@ function baseRawCoach() {
     medical_history: {
       active_injuries: [],
       chronic_conditions: [],
-      physician_clearance_status: null,
+      physician_clearance: null,
       pain_scale_current_max_0_to_10: 0,
       pain_locations: [],
     },

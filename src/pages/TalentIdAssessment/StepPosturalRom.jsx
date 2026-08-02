@@ -9,7 +9,9 @@ import { StepShell, NumberField, CheckboxField, SelectField } from "./formFields
 
 export default function StepPosturalRom({ form, updateField, onNext, onBack }) {
   function setPosture(key, severity) {
-    updateField("posture", { ...form.posture, [key]: Number(severity) });
+    // ⚠️ رفع باگ Commit 22: severity باید داخل {severity:N} بسته‌بندی شود
+    // (رجوع کنید به کامنت defaultTalentIdForm در formShape.js).
+    updateField("posture", { ...form.posture, [key]: { severity: Number(severity) } });
   }
   function setRom(key, severity) {
     updateField("rom_deficits", { ...form.rom_deficits, [key]: severity });
@@ -23,7 +25,7 @@ export default function StepPosturalRom({ form, updateField, onNext, onBack }) {
           <SelectField
             key={p.key}
             label={p.label}
-            value={form.posture[p.key]}
+            value={form.posture[p.key].severity}
             onChange={(v) => setPosture(p.key, v)}
             options={Object.entries(POSTURE_SEVERITY_LABELS).map(([value, label]) => ({ value, label }))}
           />

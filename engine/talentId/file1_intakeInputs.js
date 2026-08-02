@@ -198,12 +198,20 @@ function normalizePerf(performanceTests, chronoAge) {
 
 // طبق فیلدهای coach_input.medical_history نمونه‌ی بخش ۲.۱ سند — passthrough
 // مستقیم؛ تفسیر پزشکی (activePathologyMap) کار file10 است، نه اینجا.
+//
+// ⚠️ رفع باگ Commit 22 (کشف‌شده حین ساخت caseC E2E): physician_clearance
+// قبلاً از "physician_clearance_status" (یک رشته‌ی ساده) خوانده می‌شد، اما
+// computeMedicalHoldForSport (file10) به یک آبجکت ساختاریافته نیاز دارد:
+// clearanceData.cleared_sports/.date/.notes — دقیقاً هم‌شکل NormalizedIntake.medical.physician_clearance
+// (بخش ۲.۶/۱۱.۲ سند، خط ۴۶۷/۲۷۱۸) و pseudocode بخش ۱۱.۳ سند (خط ۱۹۴۸-۱۹۵۶:
+// «clearance: { specialist_signed_id, date, cleared_sports: [], notes }»).
+// با کلید قدیمی، جریان clearance هرگز از هیچ ورودی خامی قابل‌دسترسی نبود.
 function normalizeMedical(medicalHistory) {
   return {
     active_pathologies: medicalHistory?.active_injuries ?? [],
     chronic_conditions: medicalHistory?.chronic_conditions ?? [],
     pain_max: medicalHistory?.pain_scale_current_max_0_to_10 ?? 0,
-    physician_clearance: medicalHistory?.physician_clearance_status ?? null,
+    physician_clearance: medicalHistory?.physician_clearance ?? null,
   };
 }
 
@@ -228,7 +236,14 @@ const DEVICE_FIELD_PATHS = [
   ["anthropometrics", "shoulder_width_cm"],
   ["anthropometrics", "hip_width_cm"],
   ["body_composition_bia", "body_fat_percent"],
-  ["body_composition_bia", "skeletal_muscle_mass_kg"],
+  // ⚠️ رفع باگ Commit 22 (کشف‌شده حین ساخت caseA E2E): این مسیر قبلاً
+  // "skeletal_muscle_mass_kg" بود — یک فیلد واقعی و مجزا در schema خام
+  // (بخش ۲.۱ سند) اما هرگز توسط normalizeComposition خوانده نمی‌شود.
+  // مصرف‌کننده‌ی واقعی smm_percent (خط ۱۵۶ همین فایل، طبق NormalizedIntake
+  // بخش ۵.۳.۳ سند) دقیقاً "smm_percent_of_body_weight" است — این مسیر باید
+  // همان را چک کند، وگرنه completeness_percent میدانی را «کامل» نشان
+  // می‌دهد که در واقع NaN تولید می‌کند.
+  ["body_composition_bia", "smm_percent_of_body_weight"],
   ["body_composition_bia", "total_body_water_percent"],
   ["body_composition_bia", "fat_free_mass_kg"],
   ["biometric", "resting_heart_rate_bpm"],
